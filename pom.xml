@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <artifactId>java-rust-example</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>Rust Java Example</name>
+    <name>Java Rust Example</name>
     <description>Example of calling a Rust library from Java</description>
 
     <properties>
