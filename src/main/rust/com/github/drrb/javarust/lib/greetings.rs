@@ -24,7 +24,7 @@ use std::c_str::CString;
 mod rust;
 
 #[no_mangle]
-extern fn printGreetingsInParallel(name_cstr: CString) -> CString {
+extern fn print_greetings_in_parallel(name_cstr: CString) -> CString {
     let name = match name_cstr.as_str() {
         Some(string) => string.to_owned(),
         None => fail!("Couldn't get string from C-string")

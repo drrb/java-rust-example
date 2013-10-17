@@ -20,6 +20,7 @@ import org.bridj.BridJ;
 import org.bridj.Platform;
 import org.bridj.Pointer;
 import org.bridj.ann.Library;
+import org.bridj.ann.Name;
 
 @Library("greetings")
 public class Greetings {
@@ -33,6 +34,7 @@ public class Greetings {
         return printGreetingsInParallel(Pointer.pointerToCString(name)).getCString();
     }
 
+    @Name("print_greetings_in_parallel")
     public static native Pointer<Byte> printGreetingsInParallel(Pointer<Byte> name);
 
     private Greetings() {
