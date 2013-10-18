@@ -2,7 +2,9 @@
 
 An example project containing a Java wrapper of a Rust library.
 
-NOTE: currently only works with OSX :(
+[![Build Status](https://travis-ci.org/drrb/java-rust-example.png?branch=master)](https://travis-ci.org/drrb/java-rust-example)
+
+NOTE: currently only works with OSX/Linux :(
 
 ## Contents
 So far, the project contains
