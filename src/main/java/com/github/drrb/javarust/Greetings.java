@@ -16,28 +16,32 @@
  */
 package com.github.drrb.javarust;
 
-import org.bridj.BridJ;
-import org.bridj.Platform;
-import org.bridj.Pointer;
-import org.bridj.ann.Library;
-import org.bridj.ann.Name;
+import com.sun.jna.Callback;
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+import com.sun.jna.NativeLibrary;
 
-@Library("greetings")
-public class Greetings {
+public interface Greetings extends Library {
 
-    static {
-        Platform.addEmbeddedLibraryResourceRoot("com/github/drrb/javarust/lib/");
-        BridJ.register();
+    String JNA_LIBRARY_NAME = "greetings";
+    NativeLibrary JNA_NATIVE_LIB = NativeLibrary.getInstance(JNA_LIBRARY_NAME);
+    Greetings INSTANCE = (Greetings) Native.loadLibrary(JNA_LIBRARY_NAME, Greetings.class);
+
+    interface CallMeBackCallback extends Callback {
+
+        void apply(String greeting);
     }
 
-    public static String printGreetingsInParallel(String name) {
-        return printGreetingsInParallel(Pointer.pointerToCString(name)).getCString();
-    }
+    void printGreeting(String name);
 
-    @Name("print_greetings_in_parallel")
-    public static native Pointer<Byte> printGreetingsInParallel(Pointer<Byte> name);
+    String renderGreeting(String name);
 
-    private Greetings() {
-    }
+    void callMeBack(CallMeBackCallback callback);
+
+    String greet(Person john);
+
+    GreetingSet renderGreetings();
+
+    GreetingSet renderGreetingsInParallel(int numberOfGreetings, String name);
 
 }

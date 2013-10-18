@@ -25,7 +25,8 @@ for source_file in `find "$SOURCE_ROOT" -type f -name "*.rs"`
 do
     if grep -E '#\[link.*\];' $source_file > /dev/null
     then
-        output_dir=`dirname $source_file | sed "s|$SOURCE_ROOT|$TARGET_ROOT|"`/darwin_universal
+        #output_dir=`dirname $source_file | sed "s|$SOURCE_ROOT|$TARGET_ROOT|"`/darwin_universal
+        output_dir=$TARGET_ROOT/darwin
         output_file_name=lib`basename $source_file | sed -E 's/\.rs$/.dylib/'`
         output_file=$output_dir/$output_file_name
         mkdir -p "$output_dir"

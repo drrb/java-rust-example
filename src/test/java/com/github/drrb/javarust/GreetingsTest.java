@@ -16,15 +16,88 @@
  */
 package com.github.drrb.javarust;
 
-import static com.github.drrb.javarust.Matchers.matchesRegex;
+import static com.github.drrb.javarust.Matchers.*;
+import com.sun.jna.Pointer;
+import static java.util.Arrays.asList;
+import java.util.LinkedList;
+import java.util.List;
 import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class GreetingsTest {
 
+    private Greetings library;
+
+    @Before
+    public void setUp() {
+        library = Greetings.INSTANCE;
+    }
+
     @Test
-    public void printGreetingToConsole() throws Exception {
-        String firstGreeting = Greetings.printGreetingsInParallel("World");
-        assertThat(firstGreeting, matchesRegex("Greeting number \\d for World"));
+    public void shouldPrintGreetingWithoutCrashing() {
+        library.printGreeting("World");
+    }
+
+    @Test
+    public void shouldRenderGreeting() {
+        String greeting = library.renderGreeting("World");
+
+        assertThat(greeting, is("Hello, World!"));
+    }
+
+    @Test
+    public void shouldCallMeBack() {
+        final List<String> greetings = new LinkedList<>();
+        library.callMeBack(new Greetings.CallMeBackCallback() {
+
+            @Override
+            public void apply(String greeting) {
+                greetings.add(greeting);
+            }
+        });
+        assertThat(greetings, is(asList("Hello there!")));
+    }
+
+    @Test
+    public void shouldGreetAPerson() {
+        Person john = new Person.ByReference();
+        john.firstName = "John";
+        john.lastName = "Smith";
+        String greeting = library.greet(john);
+        assertThat(greeting, is("Hello, John!"));
+    }
+
+    @Test
+    @Ignore
+    public void shouldRenderListOfGreetings() {
+        GreetingSet result = library.renderGreetings();
+        List<String> greetings = result.getGreetings();
+
+        assertThat(greetings, is(asList("Hello!", "Hello again!")));
+    }
+
+    @Test
+    @Ignore
+    public void shouldRenderGreetingsInTasks() throws Exception {
+        GreetingSet result = Greetings.INSTANCE.renderGreetingsInParallel(5, "World");
+
+        System.out.println("received " + result.numberOfGreetings + " greetings");
+
+        String dump = result.greetings.dump(0, 10);
+        System.out.println("dump = " + dump);
+
+        Pointer[] pointerArray = result.greetings.getPointerArray(0, result.numberOfGreetings);
+        System.out.println("pointerArray = " + pointerArray);
+
+        System.out.println("pointerArray[0] = " + pointerArray[0].getString(0));
+
+        List<String> greetings = result.getGreetings();
+//        assertThat(greetings, hasSize(5));
+//
+//        for (int i = 0; i < result.numberOfGreetings; i++) {
+//            assertThat(greetings.get(0), matchesRegex("Greeting number \\d for World"));
+//        }
     }
 }
