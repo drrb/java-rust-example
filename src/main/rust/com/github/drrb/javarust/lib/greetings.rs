@@ -35,48 +35,71 @@ pub struct Person {
     last_name: CString
 }
 
-#[no_mangle]
+/// Example of starting the runtime
+#[no_mangle] // "no_mangle", so that our Java code can still see the Rust funciton after it's compiled
 extern fn printGreeting(name: CString) {
+    // Convert the C string to a Rust one
     let name = from_c_str(name);
+
+    // Start the runtime so that we can use the IO library
     do rust::run_in_runtime {
         println(fmt!("Hello, %s", name));
     }
 }
 
+/// Example of passing and returning a value
 #[no_mangle]
 extern fn renderGreeting(name: CString) -> CString {
     let name = from_c_str(name);
+
+    // Convert the Rust string back to a C string so that we can return it
     ("Hello, " + name + "!").to_c_str()
 }
 
+/// Example of passing a callback
 #[no_mangle]
-extern fn callMeBack(callback: extern "C" fn(CString)) {
+#[cfg(not(windows))]
+extern fn callMeBack(callback: extern "C" fn(CString)) { // The function argument here is an "extern" one, so that we can pass it in from Java
+
+    // Call the Java method
     callback("Hello there!".to_c_str());
 }
 
+/// Example of passing a callback (Windows version)
+#[no_mangle]
+#[cfg(windows)]
+extern fn callMeBack(callback: extern "stdcall" fn(CString)) { // "stdcall" is the calling convention Windows uses
+    callback("Hello there!".to_c_str());
+}
+
+/// Example of passing a struct to Rust
 #[no_mangle]
 extern fn greet(person_ptr: *mut Person) -> CString {
+    // Read the raw pointer as a struct
     let person = unsafe { ptr::read_ptr(person_ptr) };
     let first_name = from_c_str(person.first_name);
+    //TODO: how do we get the last name too, without being able to clone the Person?
     ("Hello, " + first_name + "!").to_c_str()
 }
 
+/// Example of returning a struct from Rust
 #[no_mangle]
 extern fn renderGreetings() -> ~GreetingSet {
     let greetings = [ "Hello!".to_c_str(), "Hello again!".to_c_str() ];
+
     ~GreetingSet {
+        // Get a raw pointer to the vector, so that we can pass it back to Java
         greetings: vec::raw::to_ptr(greetings),
+        // Also return the length of the array, so that we can create the array back in Java
         number_of_greetings: greetings.len() as c_int
     }
 }
 
+/// More complex example with tasks
 #[no_mangle]
 extern fn renderGreetingsInParallel(number_of_greetings: c_int, name: CString) -> ~GreetingSet {
     let number_of_greetings = number_of_greetings as int;
-    let name = match name.as_str() {
-        Some(string) => string.to_owned(),
-        None => fail!("Couldn't get string from C-string")
-    };
+    let name = from_c_str(name);
 
     let greetings = do rust::run_in_runtime {
         let (port, chan) = stream();
