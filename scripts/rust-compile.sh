@@ -48,7 +48,7 @@ do
         mkdir -p "$output_dir"
         mkdir -p "$TMP_DIR"
         rustc -o "$TMP_DIR/$output_file_name" "$source_file"
-        find $TMP_DIR -type f -depth 1 | xargs -I {} cp {} "$output_file"
+        find "$TMP_DIR" -type f -depth 1 | xargs -I {} cp {} "$output_file"
     else
 	echo "Not compiling '$source_file' because it's not a crate"
     fi
