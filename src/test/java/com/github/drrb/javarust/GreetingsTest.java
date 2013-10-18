@@ -16,7 +16,8 @@
  */
 package com.github.drrb.javarust;
 
-import static com.github.drrb.javarust.Matchers.*;
+import static com.github.drrb.javarust.test.Matchers.*;
+import com.github.drrb.javarust.test.MethodPrintingRule;
 import com.sun.jna.Pointer;
 import static java.util.Arrays.asList;
 import java.util.LinkedList;
@@ -24,10 +25,13 @@ import java.util.List;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 public class GreetingsTest {
 
+    @Rule
+    public final MethodPrintingRule printer = new MethodPrintingRule();
     private Greetings library;
 
     @Before
