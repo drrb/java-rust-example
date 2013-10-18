@@ -16,6 +16,7 @@
 
 set -ex
 
+PATH=$PATH:/usr/local/bin
 SOURCE_ROOT="src/main/rust"
 TARGET_ROOT="target/classes"
 TMP_DIR=/tmp/rustc$$
@@ -30,7 +31,7 @@ do
         output_file=$output_dir/$output_file_name
         mkdir -p "$output_dir"
         mkdir $TMP_DIR
-        /usr/local/bin/rustc -o "$TMP_DIR/$output_file_name" "$source_file"
+        rustc -o "$TMP_DIR/$output_file_name" "$source_file"
         mv $TMP_DIR/*.dylib $output_file
         rm -rf $TMP_DIR
     else
