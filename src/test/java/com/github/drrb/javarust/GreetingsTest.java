@@ -50,7 +50,7 @@ public class GreetingsTest {
     @Test
     public void shouldCallMeBack() {
         final List<String> greetings = new LinkedList<>();
-        library.callMeBack(new Greetings.CallMeBackCallback() {
+        library.callMeBack(new Greetings.GreetingCallback() {
 
             @Override
             public void apply(String greeting) {

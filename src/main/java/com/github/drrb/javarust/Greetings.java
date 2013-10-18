@@ -23,11 +23,21 @@ import com.sun.jna.NativeLibrary;
 
 public interface Greetings extends Library {
 
+    /**
+     * JNA will load a libarary with this name from the classpath.
+     *
+     * E.g. on OSX, the library needs to be in /darwin/libgreetings.dylib
+     */
     String JNA_LIBRARY_NAME = "greetings";
     NativeLibrary JNA_NATIVE_LIB = NativeLibrary.getInstance(JNA_LIBRARY_NAME);
     Greetings INSTANCE = (Greetings) Native.loadLibrary(JNA_LIBRARY_NAME, Greetings.class);
 
-    interface CallMeBackCallback extends Callback {
+    /**
+     * A callback function to pass to Rust
+     *
+     * @see #callMeBack
+     */
+    interface GreetingCallback extends Callback {
 
         void apply(String greeting);
     }
@@ -36,7 +46,7 @@ public interface Greetings extends Library {
 
     String renderGreeting(String name);
 
-    void callMeBack(CallMeBackCallback callback);
+    void callMeBack(GreetingCallback callback);
 
     String greet(Person john);
 

@@ -75,14 +75,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </configuration>
             </plugin>
 
-            <!-- Compile the Rust Library -->
+            <!--
+            Compile the Rust Library
+
+            The library will end up on the classpath
+            -->
             <plugin>
                 <artifactId>exec-maven-plugin</artifactId>
                 <groupId>org.codehaus.mojo</groupId>
                 <version>1.2.1</version>
                 <executions>
                     <execution>
-                        <id>compile-rustc-hook</id>
+                        <id>rustc</id>
                         <phase>compile</phase>
                         <goals>
                             <goal>exec</goal>
