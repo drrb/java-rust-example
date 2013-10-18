@@ -1,7 +1,5 @@
 This project depends on the following libraries (including test and runtime dependencies)
 
-  Android SDK's dx Tool under Apache 2.0
-  BridJ (NativeLibs4Java C/C++ Interop Layer) under New BSD License (GPL-compatible)
   Hamcrest All under New BSD License
   Hamcrest Core under New BSD License
   Java Native Access under LGPL, version 2.1 or ASL, version 2
