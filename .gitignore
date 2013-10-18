@@ -2,3 +2,4 @@
 /*.iml
 /target
 *.swp
+/hs_err_pid*.log
