@@ -20,6 +20,7 @@ PATH="$PATH:/usr/local/bin"
 SOURCE_ROOT="src/main/rust"
 TARGET_ROOT="target/classes"
 TMP_DIR="target/rustc$$"
+BASE_DIR=`dirname "${BASH_SOURCE[0]}"`/..
 
 echo "OSTYPE = $OSTYPE"
 if [[ "$OSTYPE" =~ ^darwin ]]
@@ -36,8 +37,7 @@ else
     fi
 fi
 
-
-cd `dirname "${BASH_SOURCE[0]}"`/..
+cd "$BASE_DIR"
 for source_file in `find "$SOURCE_ROOT" -type f -name "*.rs"`
 do
     if grep -E '#\[link.*\];' $source_file > /dev/null
@@ -48,7 +48,8 @@ do
         mkdir -p "$output_dir"
         mkdir -p "$TMP_DIR"
         rustc -o "$TMP_DIR/$output_file_name" "$source_file"
-        find "$TMP_DIR" -type f -depth 1 | xargs -I {} cp {} "$output_file"
+	cp $TMP_DIR/*.$LIBRARY_SUFFIX "$output_file"
+	rm -rf $TMP_DIR
     else
 	echo "Not compiling '$source_file' because it's not a crate"
     fi
