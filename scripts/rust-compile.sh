@@ -31,7 +31,7 @@ else
     LIBRARY_SUFFIX=so
     if [[ "`uname -m`" == "x86_64" ]]
     then
-	OS_ARCH=linux-amd64
+	OS_ARCH=linux-x86-64
     else
 	OS_ARCH=linux-x86
     fi
