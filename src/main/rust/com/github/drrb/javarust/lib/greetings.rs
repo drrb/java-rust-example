@@ -43,9 +43,9 @@ pub extern fn printGreeting(name: CString) {
     let name = from_c_str(name);
 
     // Start the runtime so that we can use the IO library
-    rust::run_in_runtime(proc() {
+    do rust::run_in_runtime {
         println(format!("Hello, {}", name));
-    })
+    }
 }
 
 /// Example of passing and returning a value
