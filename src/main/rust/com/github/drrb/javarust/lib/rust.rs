@@ -16,11 +16,13 @@
  */
 #[allow(ctypes)];
 
+extern mod native;
 use std::rt;
 use std::ptr;
 use std::unstable::intrinsics;
-use std::unstable::sync::UnsafeArc;
-use std::unstable::atomics::{AtomicPtr, SeqCst};
+use std::sync::arc::UnsafeArc;
+use std::sync::atomics::AtomicPtr;
+use std::sync::atomics::SeqCst;
 
 extern {
     pub fn write(fd: i32, buf: *u8, nbyte: uint) -> uint;
@@ -35,12 +37,12 @@ pub fn println_outside_runtime(message: &str) {
 }
 
 ///Start the runtime and run the block
-pub fn run_in_runtime<T>(function: ~fn() -> T) -> T {
+pub fn run_in_runtime<T: Send>(function: proc() -> T) -> T {
     let result_setter = UnsafeArc::new(AtomicPtr::new(ptr::mut_null()));
     let result_getter = result_setter.clone();
 
-    init_runtime();
-    do rt::run_on_main_thread {
+    rt::init(0, ptr::null());
+    do native::run {
         let mut result = ~function();
         unsafe {
             (*result_setter.get()).store(ptr::to_mut_unsafe_ptr(result), SeqCst);
@@ -48,19 +50,10 @@ pub fn run_in_runtime<T>(function: ~fn() -> T) -> T {
             intrinsics::forget(result);
         }
     };
-    rt::cleanup();
 
     unsafe {
-        ptr::read_ptr((*result_getter.get()).load(SeqCst))
+        rt::cleanup();
+        let result_pointer = (*result_getter.get_immut()).load(SeqCst);
+        ptr::read_ptr(result_pointer as *T)
     }
 }
-
-fn init_runtime() {
-    unsafe {
-        rt::args::init(0, ptr::null());
-    }
-    //This causes a segfault:
-    //rt::logging::init();
-    rt::env::init();
-}
-

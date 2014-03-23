@@ -31,16 +31,16 @@ else
     LIBRARY_SUFFIX=so
     if [[ "`uname -m`" == "x86_64" ]]
     then
-	OS_ARCH=linux-x86-64
+        OS_ARCH=linux-x86-64
     else
-	OS_ARCH=linux-x86
+        OS_ARCH=linux-x86
     fi
 fi
 
 cd "$BASE_DIR"
 for source_file in `find "$SOURCE_ROOT" -type f -name "*.rs"`
 do
-    if grep -E '#\[link.*\];' $source_file > /dev/null
+    if grep -E '#\[crate_id.*\];' $source_file > /dev/null
     then
         output_dir="$TARGET_ROOT/$OS_ARCH"
         output_file_name=lib`basename $source_file | sed -E 's/\.rs$/.'$LIBRARY_SUFFIX'/'`
@@ -48,9 +48,9 @@ do
         mkdir -p "$output_dir"
         mkdir -p "$TMP_DIR"
         rustc -o "$TMP_DIR/$output_file_name" "$source_file"
-	cp $TMP_DIR/*.$LIBRARY_SUFFIX "$output_file"
-	rm -rf $TMP_DIR
+        cp $TMP_DIR/*.$LIBRARY_SUFFIX "$output_file"
+        rm -rf $TMP_DIR
     else
-	echo "Not compiling '$source_file' because it's not a crate"
+        echo "Not compiling '$source_file' because it's not a crate"
     fi
 done
