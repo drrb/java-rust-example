@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-set -ex
+set -e
 
 PATH="$PATH:/usr/local/bin"
 SOURCE_ROOT="src/main/rust"
@@ -45,11 +45,17 @@ do
         output_dir="$TARGET_ROOT/$OS_ARCH"
         output_file_name=lib`basename $source_file | sed -E 's/\.rs$/.'$LIBRARY_SUFFIX'/'`
         output_file=$output_dir/$output_file_name
-        mkdir -p "$output_dir"
-        mkdir -p "$TMP_DIR"
-        rustc -o "$TMP_DIR/$output_file_name" "$source_file"
-        cp $TMP_DIR/*.$LIBRARY_SUFFIX "$output_file"
-        rm -rf $TMP_DIR
+        if [[ "`stat -f %m $source_file`" -gt "`stat -f %m $output_file`" ]]
+        then
+            echo "Compiling '$source_file': changes detected"
+            mkdir -p "$output_dir"
+            mkdir -p "$TMP_DIR"
+            rustc -o "$TMP_DIR/$output_file_name" "$source_file"
+            cp $TMP_DIR/*.$LIBRARY_SUFFIX "$output_file"
+            rm -rf $TMP_DIR
+        else
+            echo "Not compiling '$source_file': compiled version is up to date"
+        fi
     else
         echo "Not compiling '$source_file' because it's not a crate"
     fi
