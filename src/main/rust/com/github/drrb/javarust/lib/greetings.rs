@@ -31,6 +31,10 @@ pub struct GreetingSet {
     number_of_greetings: c_int
 }
 
+pub struct Greeting {
+    text: CString
+}
+
 pub struct Person {
     first_name: CString,
     last_name: CString
@@ -81,6 +85,22 @@ pub extern fn greet(person_ptr: *Person) -> CString {
     let first_name = from_c_str(person.first_name);
     //TODO: how do we get the last name too, without being able to clone the Person?
     ("Hello, " + first_name + "!").to_c_str()
+}
+
+/// Example of returning a struct from Rust by value
+#[no_mangle]
+pub extern fn getGreetingByValue() -> Greeting {
+    do rust::run_in_runtime {
+        Greeting { text: "Hello from Rust!".to_c_str() }
+    }
+}
+
+/// Example of returning a struct from Rust by reference
+#[no_mangle]
+pub extern fn getGreetingByReference() -> ~Greeting {
+    do rust::run_in_runtime {
+        ~Greeting { text: "Hello from Rust!".to_c_str() }
+    }
 }
 
 /// Example of returning a struct from Rust

@@ -50,6 +50,12 @@ public interface Greetings extends Library {
 
     String greet(Person john);
 
+    // Just returning a Greeting here gives you a segfault
+    Greeting.ByValue getGreetingByValue();
+
+    // Just returning a Greeting here gives you a segfault
+    Greeting.ByReference getGreetingByReference();
+
     GreetingSet renderGreetings();
 
     GreetingSet renderGreetingsInParallel(int numberOfGreetings, String name);

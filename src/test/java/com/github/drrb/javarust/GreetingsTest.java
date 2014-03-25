@@ -52,7 +52,6 @@ public class GreetingsTest {
     }
 
     @Test
-    @Ignore("Segfault on Linux")
     public void shouldCallMeBack() {
         final List<String> greetings = new LinkedList<>();
         library.callMeBack(new Greetings.GreetingCallback() {
@@ -66,13 +65,25 @@ public class GreetingsTest {
     }
 
     @Test
-    @Ignore("Causes a segmentation fault on Linux")
-    public void shouldGreetAPerson() {
+    public void shouldSendAStructToRust() {
         Person john = new Person.ByReference();
         john.firstName = "John";
         john.lastName = "Smith";
         String greeting = library.greet(john);
         assertThat(greeting, is("Hello, John!"));
+    }
+
+    @Test
+    @Ignore
+    public void shouldGetAStructFromRustByValue() {
+        Greeting greeting = library.getGreetingByValue();
+        assertThat(greeting.text, is("Hello from Rust!"));
+    }
+
+    @Test
+    public void shouldGetAStructFromRustByReference() {
+        Greeting greeting = library.getGreetingByReference();
+        assertThat(greeting.text, is("Hello from Rust!"));
     }
 
     @Test
