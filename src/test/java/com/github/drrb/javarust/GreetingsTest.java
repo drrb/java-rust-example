@@ -74,47 +74,57 @@ public class GreetingsTest {
     }
 
     @Test
-    @Ignore
+    /**
+     * Get a struct from Rust by value. Works, but ends with a segfault 4/5
+     * times:<br/>
+     * <code>
+     * problematic frame :
+     * V  [libjvm.dylib+0x452648]  ParallelCompactData::calc_new_pointer(HeapWord*)+0x20.
+     * </code>
+     */
     public void shouldGetAStructFromRustByValue() {
         Greeting greeting = library.getGreetingByValue();
         assertThat(greeting.text, is("Hello from Rust!"));
     }
 
     @Test
+    @Ignore
+    /**
+     * Get a struct from Rust by reference. Usually works, but occasionally
+     * (1/10 times) gives:      <code>
+     * java(56656,0x120e2d000) malloc: *** error for object
+     * 0x7fc8b2b07e80: pointer being freed was not allocated
+     * </code>
+     */
     public void shouldGetAStructFromRustByReference() {
         Greeting greeting = library.getGreetingByReference();
         assertThat(greeting.text, is("Hello from Rust!"));
     }
 
     @Test
-    @Ignore
-    public void shouldRenderListOfGreetings() {
-        GreetingSet result = library.renderGreetings();
-        List<String> greetings = result.getGreetings();
+    public void shouldGetListOfGreetingsInACallback() {
+        final List<String> greetings = new LinkedList<String>();
+        library.sendGreetings(new Greetings.GreetingSetCallback() {
+
+            @Override
+            public void apply(GreetingSet.ByReference greetingSet) {
+                greetings.addAll(greetingSet.getGreetings());
+            }
+
+        });
 
         assertThat(greetings, is(asList("Hello!", "Hello again!")));
     }
 
     @Test
     @Ignore
-    public void shouldRenderGreetingsInTasks() throws Exception {
-        GreetingSet result = Greetings.INSTANCE.renderGreetingsInParallel(5, "World");
-
-        System.out.println("received " + result.numberOfGreetings + " greetings");
-
-        String dump = result.greetings.dump(0, 10);
-        System.out.println("dump = " + dump);
-
-        Pointer[] pointerArray = result.greetings.getPointerArray(0, result.numberOfGreetings);
-        System.out.println("pointerArray = " + pointerArray);
-
-        System.out.println("pointerArray[0] = " + pointerArray[0].getString(0));
-
+    /**
+     * Causes a segfault
+     */
+    public void shouldRenderListOfGreetings() {
+        GreetingSet result = library.renderGreetings();
         List<String> greetings = result.getGreetings();
-//        assertThat(greetings, hasSize(5));
-//
-//        for (int i = 0; i < result.numberOfGreetings; i++) {
-//            assertThat(greetings.get(0), matchesRegex("Greeting number \\d for World"));
-//        }
+
+        assertThat(greetings, is(asList("Hello!", "Hello again!")));
     }
 }

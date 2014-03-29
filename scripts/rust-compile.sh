@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-set -e
+set -ex
 
 PATH="$PATH:/usr/local/bin"
 SOURCE_ROOT="src/main/rust"

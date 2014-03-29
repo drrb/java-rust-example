@@ -17,10 +17,7 @@
 #[crate_id = "greetings#0.1"];
 #[crate_type = "lib"];
 
-use std::vec;
 use std::ptr;
-use std::comm::Chan;
-use std::comm::SharedChan;
 use std::c_str::CString;
 use std::libc::c_int;
 
@@ -47,7 +44,7 @@ pub extern fn printGreeting(name: CString) {
     let name = from_c_str(name);
 
     // Start the runtime so that we can use the IO library
-    do rust::run_in_runtime {
+    do rust::run {
         println(format!("Hello, {}", name));
     }
 }
@@ -65,7 +62,6 @@ pub extern fn renderGreeting(name: CString) -> CString {
 #[no_mangle]
 #[cfg(not(windows))]
 pub extern fn callMeBack(callback: extern "C" fn(CString)) { // The function argument here is an "extern" one, so that we can pass it in from Java
-
     // Call the Java method
     callback("Hello there!".to_c_str());
 }
@@ -90,15 +86,14 @@ pub extern fn greet(person_ptr: *Person) -> CString {
 /// Example of returning a struct from Rust by value
 #[no_mangle]
 pub extern fn getGreetingByValue() -> Greeting {
-    do rust::run_in_runtime {
-        Greeting { text: "Hello from Rust!".to_c_str() }
-    }
+    Greeting { text: "Hello from Rust!".to_c_str() }
 }
 
 /// Example of returning a struct from Rust by reference
 #[no_mangle]
 pub extern fn getGreetingByReference() -> ~Greeting {
-    do rust::run_in_runtime {
+    // Make sure we forget the pointer, otherwise, we get "java(34950,0x11b25b000) malloc: *** error for object 0x7fa535419260: pointer being freed was not allocated"
+    do rust::run {
         ~Greeting { text: "Hello from Rust!".to_c_str() }
     }
 }
@@ -108,49 +103,30 @@ pub extern fn getGreetingByReference() -> ~Greeting {
 pub extern fn renderGreetings() -> ~GreetingSet {
     let greetings = [ "Hello!".to_c_str(), "Hello again!".to_c_str() ];
 
-    ~GreetingSet {
-        // Get a raw pointer to the vector, so that we can pass it back to Java
-        greetings: greetings.as_ptr(),
-        // Also return the length of the array, so that we can create the array back in Java
-        number_of_greetings: greetings.len() as c_int
+    do rust::run {
+        ~GreetingSet {
+            // Get a raw pointer to the vector, so that we can pass it back to Java
+            greetings: greetings.as_ptr(),
+            // Also return the length of the array, so that we can create the array back in Java
+            number_of_greetings: greetings.len() as c_int
+        }
     }
 }
 
-///// More complex example with tasks
-//#[no_mangle]
-//extern fn renderGreetingsInParallel(number_of_greetings: c_int, name: CString) -> ~GreetingSet {
-//    let number_of_greetings = number_of_greetings as int;
-//    let name = from_c_str(name);
-//
-//    let greetings = do rust::run_in_runtime {
-//        let (port, chan) = Chan::new();
-//        //let chan = SharedChan::new(chan);
-//
-//        for index in range(0, number_of_greetings) {
-//            spawn(proc() {
-//                println(format!("Sending a greeting from task {}", index));
-//                chan.send((index, format!("Greeting number {} for {}", index, name)));
-//            })
-//        }
-//
-//        do vec::build(None) |push_result| {
-//            for _ in range(0, number_of_greetings) {
-//                let (task_number, greeting) = port.recv();
-//                println(format!("Received a greeting from a task {}", task_number));
-//                push_result(greeting);
-//            }
-//        }
-//    };
-//
-//    let raw_greetings = do greetings.map |greeting| {
-//        greeting.to_c_str()
-//    };
-//
-//    ~GreetingSet {
-//        greetings: raw_greetings.as_ptr(),
-//        number_of_greetings: raw_greetings.len() as c_int
-//    }
-//}
+#[no_mangle]
+pub extern fn sendGreetings(callback: extern "C" fn(~GreetingSet)) { // The function argument here is an "extern" one, so that we can pass it in from Java
+    let greetings = [ "Hello!".to_c_str(), "Hello again!".to_c_str() ];
+
+    do rust::run {
+        let set = ~GreetingSet {
+            // Get a raw pointer to the vector, so that we can pass it back to Java
+            greetings: greetings.as_ptr(),
+            // Also return the length of the array, so that we can create the array back in Java
+            number_of_greetings: greetings.len() as c_int
+        };
+        callback(set);
+    };
+}
 
 fn from_c_str(c_string: CString) -> ~str {
     match c_string.as_str() {

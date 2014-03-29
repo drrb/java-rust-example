@@ -19,6 +19,7 @@ package com.github.drrb.javarust;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -36,8 +37,15 @@ public class GreetingSet extends Structure {
     public int numberOfGreetings;
 
     public List<String> getGreetings() {
-        String[] greetingArray = greetings.getStringArray(0, numberOfGreetings);
-        return Arrays.asList(greetingArray);
+        List<String> greetingList = new LinkedList<>();
+        // Every second one is one of the strings. Why??
+        String[] greetingArray = greetings.getStringArray(0, numberOfGreetings * 2);
+        for (int i = 0; i < greetingArray.length; i++) {
+            if (i % 2 == 0) {
+                greetingList.add(greetingArray[i]);
+            }
+        }
+        return greetingList;
     }
 
     @Override

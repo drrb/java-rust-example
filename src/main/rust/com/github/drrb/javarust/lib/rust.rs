@@ -24,20 +24,8 @@ use std::sync::arc::UnsafeArc;
 use std::sync::atomics::AtomicPtr;
 use std::sync::atomics::SeqCst;
 
-extern {
-    pub fn write(fd: i32, buf: *u8, nbyte: uint) -> uint;
-}
-
-#[fixed_stack_segment]
-pub fn println_outside_runtime(message: &str) {
-    let line = message.to_owned() + "\n";
-    unsafe {
-        write(0, ptr::to_unsafe_ptr(&line[0]), line.len());
-    }
-}
-
 ///Start the runtime and run the block
-pub fn run_in_runtime<T: Send>(function: proc() -> T) -> T {
+pub fn run<T: Send>(function: proc() -> T) -> T {
     let result_setter = UnsafeArc::new(AtomicPtr::new(ptr::mut_null()));
     let result_getter = result_setter.clone();
 

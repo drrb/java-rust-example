@@ -42,6 +42,11 @@ public interface Greetings extends Library {
         void apply(String greeting);
     }
 
+    interface GreetingSetCallback extends Callback {
+
+        void apply(GreetingSet.ByReference greetingSet);
+    }
+
     void printGreeting(String name);
 
     String renderGreeting(String name);
@@ -56,7 +61,9 @@ public interface Greetings extends Library {
     // Just returning a Greeting here gives you a segfault
     Greeting.ByReference getGreetingByReference();
 
-    GreetingSet renderGreetings();
+    GreetingSet.ByReference renderGreetings();
+
+    void sendGreetings(GreetingSetCallback callback);
 
     GreetingSet renderGreetingsInParallel(int numberOfGreetings, String name);
 
