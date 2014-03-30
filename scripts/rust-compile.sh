@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-set -ex
+set -e
 
 PATH="$PATH:/usr/local/bin"
 SOURCE_ROOT="src/main/rust"
@@ -27,6 +27,7 @@ if [[ "$OSTYPE" =~ ^darwin ]]
 then
     LIBRARY_SUFFIX=dylib
     OS_ARCH=darwin
+    STAT="stat -f %m"
 else
     LIBRARY_SUFFIX=so
     if [[ "`uname -m`" == "x86_64" ]]
@@ -35,6 +36,7 @@ else
     else
         OS_ARCH=linux-x86
     fi
+    STAT="stat --format=%Y"
 fi
 
 cd "$BASE_DIR"
@@ -45,7 +47,8 @@ do
         output_dir="$TARGET_ROOT/$OS_ARCH"
         output_file_name=lib`basename $source_file | sed -E 's/\.rs$/.'$LIBRARY_SUFFIX'/'`
         output_file=$output_dir/$output_file_name
-        if [[ "`stat -f %m $source_file`" -gt "`stat -f %m $output_file`" ]]
+
+        if [ ! -f "$output_file" ] || [[ "`$STAT $source_file`" -gt "`$STAT $output_file`" ]]
         then
             echo "Compiling '$source_file': changes detected"
             mkdir -p "$output_dir"
