@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 drrb
+ * Copyright (C) 2014 drrb
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,53 +14,57 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#[crate_id = "greetings#0.1"];
-#[crate_type = "lib"];
+#![crate_type = "dylib"]
 
-use std::ptr;
+extern crate libc;
+
+use std::mem;
 use std::c_str::CString;
-use std::libc::c_int;
+use libc::c_int;
 
-mod rust;
-
+#[repr(C)]
 pub struct GreetingSet {
-    greetings: *CString,
+    greetings: *const CString,
     number_of_greetings: c_int
 }
 
+impl Copy for GreetingSet {}
+
+#[repr(C)]
 pub struct Greeting {
     text: CString
 }
 
+//TODO: is this annotation required?
+#[repr(C)]
 pub struct Person {
     first_name: CString,
     last_name: CString
 }
 
-/// Example of starting the runtime
-#[no_mangle] // "no_mangle", so that our Java code can still see the Rust funciton after it's compiled
+/// Example of just calling into Rust
+#[no_mangle] // "no_mangle", so that our Java code can still see the Rust function after it's compiled
+#[allow(non_snake_case)]
 pub extern fn printGreeting(name: CString) {
     // Convert the C string to a Rust one
     let name = from_c_str(name);
-
-    // Start the runtime so that we can use the IO library
-    do rust::run {
-        println(format!("Hello, {}", name));
-    }
+    println!("Hello, {}", name);
 }
 
 /// Example of passing and returning a value
 #[no_mangle]
+#[allow(non_snake_case)]
 pub extern fn renderGreeting(name: CString) -> CString {
     let name = from_c_str(name);
 
     // Convert the Rust string back to a C string so that we can return it
-    ("Hello, " + name + "!").to_c_str()
+    format!("Hello, {}!", name).to_c_str()
 }
 
 /// Example of passing a callback
 #[no_mangle]
 #[cfg(not(windows))]
+#[allow(non_snake_case)]
 pub extern fn callMeBack(callback: extern "C" fn(CString)) { // The function argument here is an "extern" one, so that we can pass it in from Java
     // Call the Java method
     callback("Hello there!".to_c_str());
@@ -69,68 +73,70 @@ pub extern fn callMeBack(callback: extern "C" fn(CString)) { // The function arg
 /// Example of passing a callback (Windows version)
 #[no_mangle]
 #[cfg(windows)]
+#[allow(non_snake_case)]
 pub extern fn callMeBack(callback: extern "stdcall" fn(CString)) { // "stdcall" is the calling convention Windows uses
     callback("Hello there!".to_c_str());
 }
 
 /// Example of passing a struct to Rust
 #[no_mangle]
-pub extern fn greet(person_ptr: *Person) -> CString {
+#[allow(non_snake_case)]
+pub extern fn greet(person_ptr: *mut Person) -> CString {
     // Read the raw pointer as a struct
-    let person = unsafe { ptr::read_ptr(person_ptr) };
+    let person: Box<Person> = unsafe { mem::transmute(person_ptr) };
     let first_name = from_c_str(person.first_name);
-    //TODO: how do we get the last name too, without being able to clone the Person?
-    ("Hello, " + first_name + "!").to_c_str()
+
+    //TODO: how do we get the last name too?
+    //let last_name = from_c_str(person.last_name);
+    format!("Hello, {}!", first_name).to_c_str()
 }
 
 /// Example of returning a struct from Rust by value
 #[no_mangle]
+#[allow(non_snake_case)]
 pub extern fn getGreetingByValue() -> Greeting {
     Greeting { text: "Hello from Rust!".to_c_str() }
 }
 
 /// Example of returning a struct from Rust by reference
 #[no_mangle]
-pub extern fn getGreetingByReference() -> ~Greeting {
-    // Make sure we forget the pointer, otherwise, we get "java(34950,0x11b25b000) malloc: *** error for object 0x7fa535419260: pointer being freed was not allocated"
-    do rust::run {
-        ~Greeting { text: "Hello from Rust!".to_c_str() }
+#[allow(non_snake_case)]
+pub extern fn getGreetingByReference() -> *mut Greeting {
+    let greeting = Greeting { text: "Hello from Rust!".to_c_str() };
+    unsafe {
+        mem::transmute(box greeting)
     }
+}
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern fn sendGreetings(callback: extern "C" fn(*mut GreetingSet)) { // The function argument here is an "extern" one, so that we can pass it in from Java
+    let greetings = [ "Hello!".to_c_str(), "Hello again!".to_c_str() ];
+
+    let set = box GreetingSet {
+        // Get a raw pointer to the vector, so that we can pass it back to Java
+        greetings: greetings.as_ptr(),
+        // Also return the length of the array, so that we can create the array back in Java
+        number_of_greetings: greetings.len() as c_int
+    };
+    callback(unsafe { mem::transmute(set) });
 }
 
 /// Example of returning a struct from Rust
 #[no_mangle]
-pub extern fn renderGreetings() -> ~GreetingSet {
+#[allow(non_snake_case)]
+pub extern fn renderGreetings() -> *mut GreetingSet {
     let greetings = [ "Hello!".to_c_str(), "Hello again!".to_c_str() ];
 
-    do rust::run {
-        ~GreetingSet {
-            // Get a raw pointer to the vector, so that we can pass it back to Java
-            greetings: greetings.as_ptr(),
-            // Also return the length of the array, so that we can create the array back in Java
-            number_of_greetings: greetings.len() as c_int
-        }
-    }
-}
-
-#[no_mangle]
-pub extern fn sendGreetings(callback: extern "C" fn(~GreetingSet)) { // The function argument here is an "extern" one, so that we can pass it in from Java
-    let greetings = [ "Hello!".to_c_str(), "Hello again!".to_c_str() ];
-
-    do rust::run {
-        let set = ~GreetingSet {
-            // Get a raw pointer to the vector, so that we can pass it back to Java
-            greetings: greetings.as_ptr(),
-            // Also return the length of the array, so that we can create the array back in Java
-            number_of_greetings: greetings.len() as c_int
-        };
-        callback(set);
+    let greeting_set = box GreetingSet {
+        // Get a raw pointer to the vector, so that we can pass it back to Java
+        greetings: greetings.as_ptr(),
+        // Also return the length of the array, so that we can create the array back in Java
+        number_of_greetings: greetings.len() as c_int
     };
+    unsafe { mem::transmute(greeting_set) }
 }
 
-fn from_c_str(c_string: CString) -> ~str {
-    match c_string.as_str() {
-        Some(string) => string.to_owned(),
-        None => fail!("Couldn't get string from C-string")
-    }
+fn from_c_str(c_string: CString) -> String {
+    c_string.as_str().expect("Couldn't get string from C-string").to_string()
 }

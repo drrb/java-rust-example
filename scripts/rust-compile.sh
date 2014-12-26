@@ -42,7 +42,7 @@ fi
 cd "$BASE_DIR"
 for source_file in `find "$SOURCE_ROOT" -type f -name "*.rs"`
 do
-    if grep -E '#\[crate_id.*\];' $source_file > /dev/null
+    if grep -E '#!\[crate_type.*\]' $source_file > /dev/null
     then
         output_dir="$TARGET_ROOT/$OS_ARCH"
         output_file_name=lib`basename $source_file | sed -E 's/\.rs$/.'$LIBRARY_SUFFIX'/'`

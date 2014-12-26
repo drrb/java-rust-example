@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 drrb
+ * Copyright (C) 2015 drrb
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ public interface Greetings extends Library {
     // Just returning a Greeting here gives you a segfault
     Greeting.ByReference getGreetingByReference();
 
-    GreetingSet.ByReference renderGreetings();
+    GreetingSet.ByValue renderGreetings();
 
     void sendGreetings(GreetingSetCallback callback);
 

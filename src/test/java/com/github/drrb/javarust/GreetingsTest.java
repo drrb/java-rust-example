@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 drrb
+ * Copyright (C) 2015 drrb
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@ package com.github.drrb.javarust;
 
 import static com.github.drrb.javarust.test.Matchers.*;
 import com.github.drrb.javarust.test.MethodPrintingRule;
-import com.sun.jna.Pointer;
 import static java.util.Arrays.asList;
 import java.util.LinkedList;
 import java.util.List;
@@ -65,8 +64,13 @@ public class GreetingsTest {
     }
 
     @Test
+    @Ignore
+    /**
+     * Gives error every couple of times:
+     * java(13103,0x10335f000) malloc: *** error for object 0x11cb27dd0: pointer being freed was not allocated
+     */
     public void shouldSendAStructToRust() {
-        Person john = new Person.ByReference();
+        Person john = new Person.ByValue();
         john.firstName = "John";
         john.lastName = "Smith";
         String greeting = library.greet(john);
@@ -74,28 +78,12 @@ public class GreetingsTest {
     }
 
     @Test
-    /**
-     * Get a struct from Rust by value. Works, but ends with a segfault 4/5
-     * times:<br/>
-     * <code>
-     * problematic frame :
-     * V  [libjvm.dylib+0x452648]  ParallelCompactData::calc_new_pointer(HeapWord*)+0x20.
-     * </code>
-     */
     public void shouldGetAStructFromRustByValue() {
         Greeting greeting = library.getGreetingByValue();
         assertThat(greeting.text, is("Hello from Rust!"));
     }
 
     @Test
-    @Ignore
-    /**
-     * Get a struct from Rust by reference. Usually works, but occasionally
-     * (1/10 times) gives:      <code>
-     * java(56656,0x120e2d000) malloc: *** error for object
-     * 0x7fc8b2b07e80: pointer being freed was not allocated
-     * </code>
-     */
     public void shouldGetAStructFromRustByReference() {
         Greeting greeting = library.getGreetingByReference();
         assertThat(greeting.text, is("Hello from Rust!"));
@@ -103,7 +91,7 @@ public class GreetingsTest {
 
     @Test
     public void shouldGetListOfGreetingsInACallback() {
-        final List<String> greetings = new LinkedList<String>();
+        final List<String> greetings = new LinkedList<>();
         library.sendGreetings(new Greetings.GreetingSetCallback() {
 
             @Override

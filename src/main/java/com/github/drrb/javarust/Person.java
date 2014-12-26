@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 drrb
+ * Copyright (C) 2015 drrb
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,9 @@ import java.util.List;
 public class Person extends Structure {
 
     public static class ByReference extends Person implements Structure.ByReference {
+    }
+
+    public static class ByValue extends Person implements Structure.ByValue {
     }
 
     public String firstName;
