@@ -34,7 +34,7 @@ pub struct Greeting {
 
 impl Greeting {
     fn new(string: &str) -> Greeting {
-        Greeting { text: unsafe { string.to_string().to_c_str().into_inner() } }
+        Greeting { text: data(string) }
     }
 }
 
@@ -59,7 +59,7 @@ pub extern fn renderGreeting(name: &c_char) -> *const c_char {
     let name = to_string(name);
 
     // Convert the Rust string back to a C string so that we can return it
-    format!("Hello, {}!", name).to_c_str().as_ptr()
+    to_ptr(format!("Hello, {}!", name).to_c_str())
 }
 
 /// Example of passing a callback
@@ -68,7 +68,7 @@ pub extern fn renderGreeting(name: &c_char) -> *const c_char {
 #[allow(non_snake_case)]
 pub extern fn callMeBack(callback: extern "C" fn(*const c_char)) { // The function argument here is an "extern" one, so that we can pass it in from Java
     // Call the Java method
-    callback("Hello there!".to_c_str().as_ptr());
+    callback(data("Hello there!"));
 }
 
 /// Example of passing a callback (Windows version)
@@ -76,7 +76,7 @@ pub extern fn callMeBack(callback: extern "C" fn(*const c_char)) { // The functi
 #[cfg(windows)]
 #[allow(non_snake_case)]
 pub extern fn callMeBack(callback: extern "stdcall" fn(*const c_char)) { // "stdcall" is the calling convention Windows uses
-    callback("Hello there!".to_c_str().as_ptr());
+    callback(data("Hello there!"));
 }
 
 /// Example of passing a struct to Rust
@@ -85,7 +85,7 @@ pub extern fn callMeBack(callback: extern "stdcall" fn(*const c_char)) { // "std
 pub extern fn greet(person: &Person) -> *const c_char {
     let first_name = to_string(person.first_name);
     let last_name = to_string(person.last_name);
-    format!("Hello, {} {}!", first_name, last_name).to_c_str().as_ptr()
+    to_ptr(format!("Hello, {} {}!", first_name, last_name).to_c_str())
 }
 
 /// Example of returning a struct from Rust by value
@@ -130,12 +130,14 @@ pub extern fn renderGreetings() -> Box<GreetingSet> {
     }
 }
 
-fn to_string(pointer: &c_char) ->  String {
-    unsafe {
-        from_c_str(&CString::new(pointer, true))
-    }
+fn to_string(pointer: &c_char) -> String {
+    unsafe { &CString::new(pointer, true) }.as_str().expect("Couldn't get string from C-string").to_string()
 }
 
-fn from_c_str(c_string: &CString) -> String {
-    c_string.as_str().expect("Couldn't get string from C-string").to_string()
+fn data(string: &str) -> *const c_char {
+    to_ptr(string.to_string().to_c_str())
+}
+
+fn to_ptr(c_string: CString) -> *const c_char {
+    unsafe { c_string.into_inner() }
 }
