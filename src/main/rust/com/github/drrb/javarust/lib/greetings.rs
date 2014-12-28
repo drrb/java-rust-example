@@ -18,17 +18,16 @@
 
 extern crate libc;
 
-use std::mem;
 use std::c_str::CString;
 use libc::{c_int,c_char};
 
-#[repr(C)]
+#[allow(dead_code)]
 pub struct GreetingSet {
     greetings: Box<[Greeting]>,
     number_of_greetings: c_int
 }
 
-#[repr(C)]
+#[allow(dead_code)]
 pub struct Greeting {
     text: *const c_char
 }
@@ -39,57 +38,53 @@ impl Greeting {
     }
 }
 
-//TODO: is this annotation required?
-#[repr(C)]
-pub struct Person {
-    first_name: *const c_char,
-    last_name: *const c_char
+pub struct Person<'n> {
+    first_name: &'n c_char,
+    last_name: &'n c_char
 }
 
 /// Example of just calling into Rust
 #[no_mangle] // "no_mangle", so that our Java code can still see the Rust function after it's compiled
 #[allow(non_snake_case)]
-pub extern fn printGreeting(name: CString) {
+pub extern fn printGreeting(name: &c_char) {
     // Convert the C string to a Rust one
-    let name = from_c_str(&name);
+    let name = to_string(name);
     println!("Hello, {}", name);
 }
 
 /// Example of passing and returning a value
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn renderGreeting(name: CString) -> CString {
-    let name = from_c_str(&name);
+pub extern fn renderGreeting(name: &c_char) -> *const c_char {
+    let name = to_string(name);
 
     // Convert the Rust string back to a C string so that we can return it
-    format!("Hello, {}!", name).to_c_str()
+    format!("Hello, {}!", name).to_c_str().as_ptr()
 }
 
 /// Example of passing a callback
 #[no_mangle]
 #[cfg(not(windows))]
 #[allow(non_snake_case)]
-pub extern fn callMeBack(callback: extern "C" fn(CString)) { // The function argument here is an "extern" one, so that we can pass it in from Java
+pub extern fn callMeBack(callback: extern "C" fn(*const c_char)) { // The function argument here is an "extern" one, so that we can pass it in from Java
     // Call the Java method
-    callback("Hello there!".to_c_str());
+    callback("Hello there!".to_c_str().as_ptr());
 }
 
 /// Example of passing a callback (Windows version)
 #[no_mangle]
 #[cfg(windows)]
 #[allow(non_snake_case)]
-pub extern fn callMeBack(callback: extern "stdcall" fn(CString)) { // "stdcall" is the calling convention Windows uses
-    callback("Hello there!".to_c_str());
+pub extern fn callMeBack(callback: extern "stdcall" fn(*const c_char)) { // "stdcall" is the calling convention Windows uses
+    callback("Hello there!".to_c_str().as_ptr());
 }
 
 /// Example of passing a struct to Rust
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern fn greet(person: &Person) -> *const c_char {
-    let first_name = unsafe { from_c_str(&CString::new(person.first_name, true)) };
-    let last_name = unsafe { from_c_str(&CString::new(person.last_name, true)) };
-    //TODO: how do we get the last name too? (this line segfaults)
-    //let last_name = from_c_str(&person.last_name);
+    let first_name = to_string(person.first_name);
+    let last_name = to_string(person.last_name);
     format!("Hello, {} {}!", first_name, last_name).to_c_str().as_ptr()
 }
 
@@ -132,6 +127,12 @@ pub extern fn renderGreetings() -> Box<GreetingSet> {
     box GreetingSet {
         greetings: greetings.into_boxed_slice(),
         number_of_greetings: num_greetings as c_int
+    }
+}
+
+fn to_string(pointer: &c_char) ->  String {
+    unsafe {
+        from_c_str(&CString::new(pointer, true))
     }
 }
 

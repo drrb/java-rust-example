@@ -37,10 +37,10 @@ public class GreetingSet extends Structure {
     public int numberOfGreetings;
 
     public List<String> getGreetings() {
-        System.out.println("toString() = " + toString());
         Pointer[] pointers = greetings.getPointerArray(0, numberOfGreetings);
         List<String> greetings = new ArrayList<>(numberOfGreetings);
         for (Pointer pointer : pointers) {
+            //TODO: why don't these work?
             //greetings.add(new Greeting(pointer.getPointer(0)).text);
             //greetings.add(((Greeting) Structure.newInstance(Greeting.ByValue.class, pointer)).text);
             greetings.add(pointer.getString(0));
