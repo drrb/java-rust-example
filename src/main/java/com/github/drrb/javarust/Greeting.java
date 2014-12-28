@@ -16,6 +16,7 @@
  */
 package com.github.drrb.javarust;
 
+import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import java.util.Arrays;
 import java.util.List;
@@ -33,9 +34,15 @@ public class Greeting extends Structure {
 
     public String text;
 
+    public Greeting() {
+    }
+
+    public Greeting(Pointer p) {
+        super(p);
+    }
+
     @Override
     protected List<String> getFieldOrder() {
         return Arrays.asList("text");
     }
-
 }

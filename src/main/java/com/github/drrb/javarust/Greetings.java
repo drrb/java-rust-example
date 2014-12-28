@@ -61,7 +61,7 @@ public interface Greetings extends Library {
     // Just returning a Greeting here gives you a segfault
     Greeting.ByReference getGreetingByReference();
 
-    GreetingSet.ByValue renderGreetings();
+    GreetingSet.ByReference renderGreetings();
 
     void sendGreetings(GreetingSetCallback callback);
 

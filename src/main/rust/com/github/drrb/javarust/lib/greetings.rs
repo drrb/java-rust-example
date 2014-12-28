@@ -20,26 +20,30 @@ extern crate libc;
 
 use std::mem;
 use std::c_str::CString;
-use libc::c_int;
+use libc::{c_int,c_char};
 
 #[repr(C)]
 pub struct GreetingSet {
-    greetings: *const CString,
+    greetings: Box<[Greeting]>,
     number_of_greetings: c_int
 }
 
-impl Copy for GreetingSet {}
-
 #[repr(C)]
 pub struct Greeting {
-    text: CString
+    text: *const c_char
+}
+
+impl Greeting {
+    fn new(string: &str) -> Greeting {
+        Greeting { text: unsafe { string.to_string().to_c_str().into_inner() } }
+    }
 }
 
 //TODO: is this annotation required?
 #[repr(C)]
 pub struct Person {
-    first_name: CString,
-    last_name: CString
+    first_name: *const c_char,
+    last_name: *const c_char
 }
 
 /// Example of just calling into Rust
@@ -47,7 +51,7 @@ pub struct Person {
 #[allow(non_snake_case)]
 pub extern fn printGreeting(name: CString) {
     // Convert the C string to a Rust one
-    let name = from_c_str(name);
+    let name = from_c_str(&name);
     println!("Hello, {}", name);
 }
 
@@ -55,7 +59,7 @@ pub extern fn printGreeting(name: CString) {
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern fn renderGreeting(name: CString) -> CString {
-    let name = from_c_str(name);
+    let name = from_c_str(&name);
 
     // Convert the Rust string back to a C string so that we can return it
     format!("Hello, {}!", name).to_c_str()
@@ -81,62 +85,56 @@ pub extern fn callMeBack(callback: extern "stdcall" fn(CString)) { // "stdcall" 
 /// Example of passing a struct to Rust
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn greet(person_ptr: *mut Person) -> CString {
-    // Read the raw pointer as a struct
-    let person: Box<Person> = unsafe { mem::transmute(person_ptr) };
-    let first_name = from_c_str(person.first_name);
-
-    //TODO: how do we get the last name too?
-    //let last_name = from_c_str(person.last_name);
-    format!("Hello, {}!", first_name).to_c_str()
+pub extern fn greet(person: &Person) -> *const c_char {
+    let first_name = unsafe { from_c_str(&CString::new(person.first_name, true)) };
+    let last_name = unsafe { from_c_str(&CString::new(person.last_name, true)) };
+    //TODO: how do we get the last name too? (this line segfaults)
+    //let last_name = from_c_str(&person.last_name);
+    format!("Hello, {} {}!", first_name, last_name).to_c_str().as_ptr()
 }
 
 /// Example of returning a struct from Rust by value
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern fn getGreetingByValue() -> Greeting {
-    Greeting { text: "Hello from Rust!".to_c_str() }
+    Greeting::new("Hello from Rust!")
 }
 
 /// Example of returning a struct from Rust by reference
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn getGreetingByReference() -> *mut Greeting {
-    let greeting = Greeting { text: "Hello from Rust!".to_c_str() };
-    unsafe {
-        mem::transmute(box greeting)
-    }
+pub extern fn getGreetingByReference() -> Box<Greeting> {
+    box Greeting::new("Hello from Rust!")
 }
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn sendGreetings(callback: extern "C" fn(*mut GreetingSet)) { // The function argument here is an "extern" one, so that we can pass it in from Java
-    let greetings = [ "Hello!".to_c_str(), "Hello again!".to_c_str() ];
+pub extern fn sendGreetings(callback: extern "C" fn(Box<GreetingSet>)) { // The function argument here is an "extern" one, so that we can pass it in from Java
+    let greetings = vec![ Greeting::new("Hello!"), Greeting::new("Hello again!") ];
+    let num_greetings = greetings.len();
 
     let set = box GreetingSet {
         // Get a raw pointer to the vector, so that we can pass it back to Java
-        greetings: greetings.as_ptr(),
+        greetings: greetings.into_boxed_slice(),
         // Also return the length of the array, so that we can create the array back in Java
-        number_of_greetings: greetings.len() as c_int
+        number_of_greetings: num_greetings as c_int
     };
-    callback(unsafe { mem::transmute(set) });
+    callback(set);
 }
 
 /// Example of returning a struct from Rust
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn renderGreetings() -> *mut GreetingSet {
-    let greetings = [ "Hello!".to_c_str(), "Hello again!".to_c_str() ];
+pub extern fn renderGreetings() -> Box<GreetingSet> {
+    let greetings = vec![ Greeting::new("Hello!"), Greeting::new("Hello again!") ];
+    let num_greetings = greetings.len();
 
-    let greeting_set = box GreetingSet {
-        // Get a raw pointer to the vector, so that we can pass it back to Java
-        greetings: greetings.as_ptr(),
-        // Also return the length of the array, so that we can create the array back in Java
-        number_of_greetings: greetings.len() as c_int
-    };
-    unsafe { mem::transmute(greeting_set) }
+    box GreetingSet {
+        greetings: greetings.into_boxed_slice(),
+        number_of_greetings: num_greetings as c_int
+    }
 }
 
-fn from_c_str(c_string: CString) -> String {
+fn from_c_str(c_string: &CString) -> String {
     c_string.as_str().expect("Couldn't get string from C-string").to_string()
 }

@@ -23,7 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -53,28 +52,19 @@ public class GreetingsTest {
     @Test
     public void shouldCallMeBack() {
         final List<String> greetings = new LinkedList<>();
-        library.callMeBack(new Greetings.GreetingCallback() {
-
-            @Override
-            public void apply(String greeting) {
-                greetings.add(greeting);
-            }
+        library.callMeBack((greeting) -> {
+            greetings.add(greeting);
         });
         assertThat(greetings, is(asList("Hello there!")));
     }
 
     @Test
-    @Ignore
-    /**
-     * Gives error every couple of times:
-     * java(13103,0x10335f000) malloc: *** error for object 0x11cb27dd0: pointer being freed was not allocated
-     */
     public void shouldSendAStructToRust() {
-        Person john = new Person.ByValue();
+        Person john = new Person();
         john.firstName = "John";
         john.lastName = "Smith";
         String greeting = library.greet(john);
-        assertThat(greeting, is("Hello, John!"));
+        assertThat(greeting, is("Hello, John Smith!"));
     }
 
     @Test
@@ -92,23 +82,14 @@ public class GreetingsTest {
     @Test
     public void shouldGetListOfGreetingsInACallback() {
         final List<String> greetings = new LinkedList<>();
-        library.sendGreetings(new Greetings.GreetingSetCallback() {
-
-            @Override
-            public void apply(GreetingSet.ByReference greetingSet) {
-                greetings.addAll(greetingSet.getGreetings());
-            }
-
+        library.sendGreetings((greetingSet) -> {
+            greetings.addAll(greetingSet.getGreetings());
         });
 
         assertThat(greetings, is(asList("Hello!", "Hello again!")));
     }
 
     @Test
-    @Ignore
-    /**
-     * Causes a segfault
-     */
     public void shouldRenderListOfGreetings() {
         GreetingSet result = library.renderGreetings();
         List<String> greetings = result.getGreetings();
