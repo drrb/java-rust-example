@@ -4,8 +4,6 @@ An example project containing a Java wrapper of a Rust library.
 
 [![Build Status](https://travis-ci.org/drrb/java-rust-example.png?branch=master)](https://travis-ci.org/drrb/java-rust-example)
 
-NOTE: currently only works with OSX :(
-
 ## Contents
 So far, the project contains
 - A Java interface to the Rust library, using [JNA](https://github.com/twall/jna)
