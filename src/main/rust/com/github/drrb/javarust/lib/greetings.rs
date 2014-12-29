@@ -131,7 +131,7 @@ pub extern fn renderGreetings() -> Box<GreetingSet> {
 }
 
 fn to_string(pointer: &c_char) -> String {
-    unsafe { &CString::new(pointer, true) }.as_str().expect("Couldn't get string from C-string").to_string()
+    unsafe { &CString::new(pointer, false) }.as_str().expect("Couldn't get string from C-string").to_string()
 }
 
 fn data(string: &str) -> *const c_char {
