@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2013 drrb
+# Copyright (C) 2015 drrb
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,22 +15,32 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 set -e
+set -u
+
+is_osx() [[ "$OSTYPE" =~ ^darwin ]]
+is_64_bit() [[ "`uname -m`" == "x86_64" ]]
+is_running_on_travis() {
+    env | grep TRAVIS > /dev/null
+}
+
+if is_running_on_travis
+then
+    set -x
+fi
 
 PATH="$PATH:/usr/local/bin"
 SOURCE_ROOT="src/main/rust"
 TARGET_ROOT="target/classes"
 TMP_DIR="target/rustc$$"
 BASE_DIR=`dirname "${BASH_SOURCE[0]}"`/..
-
-echo "OSTYPE = $OSTYPE"
-if [[ "$OSTYPE" =~ ^darwin ]]
+if is_osx
 then
     LIBRARY_SUFFIX=dylib
     OS_ARCH=darwin
     STAT="stat -f %m"
 else
     LIBRARY_SUFFIX=so
-    if [[ "`uname -m`" == "x86_64" ]]
+    if is_64_bit
     then
         OS_ARCH=linux-x86-64
     else
@@ -38,24 +48,47 @@ else
     fi
     STAT="stat --format=%Y"
 fi
+OUTPUT_DIR="$TARGET_ROOT/$OS_ARCH"
+
+rust_source_files() {
+    find "$SOURCE_ROOT" -type f -name "*.rs"
+}
+
+is_crate_file() {
+    local rust_source_file=$1
+    grep -E '#!\[crate_type.*\]' "$rust_source_file" > /dev/null
+}
+
+output_file_for() {
+    local source_file=$1
+    echo $OUTPUT_DIR/lib`basename "$source_file" | sed -E 's/\.rs$/.'$LIBRARY_SUFFIX'/'`
+}
+
+has_changed_since_last_compile() {
+    local source_file=$1
+    local output_file=`output_file_for "$source_file"`
+    [ ! -f "$output_file" ] || [[ "`$STAT "$source_file"`" -gt "`$STAT "$output_file"`" ]]
+}
+
+compile() {
+    local source_file=$1
+    local output_file=`output_file_for "$source_file"`
+    mkdir -p "$OUTPUT_DIR"
+    mkdir -p "$TMP_DIR"
+    rustc -o "${TMP_DIR}/`basename "$output_file"`" "$source_file"
+    cp $TMP_DIR/*.$LIBRARY_SUFFIX "$output_file"
+    rm -rf $TMP_DIR
+}
 
 cd "$BASE_DIR"
-for source_file in `find "$SOURCE_ROOT" -type f -name "*.rs"`
+rust_source_files | while read source_file
 do
-    if grep -E '#!\[crate_type.*\]' $source_file > /dev/null
+    if is_crate_file "$source_file"
     then
-        output_dir="$TARGET_ROOT/$OS_ARCH"
-        output_file_name=lib`basename $source_file | sed -E 's/\.rs$/.'$LIBRARY_SUFFIX'/'`
-        output_file=$output_dir/$output_file_name
-
-        if [ ! -f "$output_file" ] || [[ "`$STAT $source_file`" -gt "`$STAT $output_file`" ]]
+        if has_changed_since_last_compile "$source_file"
         then
             echo "Compiling '$source_file': changes detected"
-            mkdir -p "$output_dir"
-            mkdir -p "$TMP_DIR"
-            rustc -o "$TMP_DIR/$output_file_name" "$source_file"
-            cp $TMP_DIR/*.$LIBRARY_SUFFIX "$output_file"
-            rm -rf $TMP_DIR
+            compile "$source_file"
         else
             echo "Not compiling '$source_file': compiled version is up to date"
         fi
