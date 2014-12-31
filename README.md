@@ -13,7 +13,7 @@ So far, the project contains
 ## License
 
 Java/Rust Example
-Copyright (C) 2014 drrb
+Copyright (C) 2015 drrb
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
