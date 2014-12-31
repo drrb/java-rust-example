@@ -2,7 +2,7 @@
 
 An example project containing a Java wrapper of a Rust library.
 
-[![Build Status](https://travis-ci.org/drrb/java-rust-example.png?branch=master)](https://travis-ci.org/drrb/java-rust-example)
+[![Build Status](https://travis-ci.org/drrb/java-rust-example.svg?branch=master)](https://travis-ci.org/drrb/java-rust-example)
 
 ## Contents
 So far, the project contains
