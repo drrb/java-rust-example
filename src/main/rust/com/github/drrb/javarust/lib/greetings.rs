@@ -22,12 +22,14 @@ use std::c_str::CString;
 use libc::{c_int,c_char};
 
 #[allow(dead_code)]
+#[repr(C)]
 pub struct GreetingSet {
     greetings: Box<[Greeting]>,
     number_of_greetings: c_int
 }
 
 #[allow(dead_code)]
+#[repr(C)]
 pub struct Greeting {
     text: *const c_char
 }
@@ -38,6 +40,7 @@ impl Greeting {
     }
 }
 
+#[repr(C)]
 pub struct Person<'n> {
     first_name: &'n c_char,
     last_name: &'n c_char
