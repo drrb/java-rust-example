@@ -44,7 +44,7 @@ pub struct Greeting {
 
 impl Greeting {
     fn new(string: &str) -> Greeting {
-        Greeting { text: data(string) }
+        Greeting { text: to_ptr(string.to_string()) }
     }
 }
 
@@ -80,7 +80,7 @@ pub extern fn renderGreeting(name: *const c_char) -> *const c_char {  // Returni
 #[allow(non_snake_case)]
 pub extern fn callMeBack(callback: extern "C" fn(*const c_char)) { // The function argument here is an "extern" one, so that we can pass it in from Java
     // Call the Java method
-    callback(data("Hello there!"));
+    callback(to_ptr("Hello there!".to_string()));
 }
 
 /// Example of passing a callback (Windows version)
@@ -88,7 +88,7 @@ pub extern fn callMeBack(callback: extern "C" fn(*const c_char)) { // The functi
 #[cfg(windows)]
 #[allow(non_snake_case)]
 pub extern fn callMeBack(callback: extern "stdcall" fn(*const c_char)) { // "stdcall" is the calling convention Windows uses
-    callback(data("Hello there!"));
+    callback(to_ptr("Hello there!".to_string()));
 }
 
 /// Example of passing a struct to Rust
@@ -142,18 +142,18 @@ pub extern fn renderGreetings() -> Box<GreetingSet> {
     }
 }
 
+/// Convert a native string to a Rust string
 fn to_string(pointer: &*const c_char) -> String {
     let slice = unsafe { ffi::c_str_to_bytes(pointer) };
     str::from_utf8(slice).unwrap().to_string()
 }
 
-fn data(string: &str) -> *const c_char {
-    to_ptr(string.to_string())
-}
-
+/// Convert a Rust string to a native string
 fn to_ptr(string: String) -> *const c_char {
     let cs = CString::from_slice(string.as_bytes());
     let ptr = cs.as_ptr();
+    // Tell Rust not to clean up the string while we still have a pointer to it.
+    // Otherwise, we'll get a segfault.
     unsafe { mem::forget(cs) };
     ptr
 }
