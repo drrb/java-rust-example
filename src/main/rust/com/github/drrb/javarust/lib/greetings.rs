@@ -142,6 +142,18 @@ pub extern fn renderGreetings() -> Box<GreetingSet> {
     }
 }
 
+#[no_mangle]
+pub extern fn dropGreeting(_: Box<Greeting>) {
+    // Do nothing here. Because we own it here (we're using a Box) and we're not returning it, Rust
+    // will assume we don't want it anymore.
+}
+
+#[no_mangle]
+pub extern fn dropGreetingSet(_: Box<GreetingSet>) {
+    // Do nothing here. Because we own it here (we're using a Box) and we're not returning it, Rust
+    // will assume we don't want it anymore.
+}
+
 /// Convert a native string to a Rust string
 fn to_string(pointer: &*const c_char) -> String {
     let slice = unsafe { ffi::c_str_to_bytes(pointer) };

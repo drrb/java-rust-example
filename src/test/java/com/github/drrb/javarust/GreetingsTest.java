@@ -68,7 +68,12 @@ public class GreetingsTest {
     @Test
     public void shouldGetAStructFromRustByReference() {
         Greeting greeting = library.getGreetingByReference();
+
         assertThat(greeting.text, is("Hello from Rust!"));
+
+        // Free the memory after using it. We need to do this because JNA assumes
+        // that the memory is owned by Rust, so Rust must clean it up.
+        library.dropGreeting(greeting);
     }
 
     @Test
@@ -89,6 +94,7 @@ public class GreetingsTest {
         List<String> greetingStrings = greetings.stream().map(Greeting::getText).collect(toList());
 
         assertThat(greetingStrings, is(asList("Hello!", "Hello again!")));
+        greetings.stream().forEach((greeting) -> library.dropGreeting(greeting));
     }
 
     @Test
@@ -100,5 +106,6 @@ public class GreetingsTest {
                 .collect(toList());
 
         assertThat(greetings, is(asList("Hello!", "Hello again!")));
+        library.dropGreetingSet(result);
     }
 }

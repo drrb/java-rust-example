@@ -107,4 +107,14 @@ public interface Greetings extends Library {
 
         void apply(GreetingSet.ByReference greetingSet);
     }
+
+    /**
+     * Free the memory used by a Greeting
+     */
+    void dropGreeting(Greeting greeting);
+
+    /**
+     * Free the memory used by a GreetingSet
+     */
+    void dropGreetingSet(GreetingSet greetingSet);
 }
