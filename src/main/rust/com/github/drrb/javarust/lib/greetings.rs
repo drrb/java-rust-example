@@ -18,7 +18,10 @@
 
 extern crate libc;
 
-use std::c_str::CString;
+use std::ffi::CString;
+use std::ffi;
+use std::str;
+use std::mem;
 use libc::{c_int,c_char};
 
 // This suppresses compiler warnings: Rustc thinks we don't use it because it's actually only used from Java
@@ -46,29 +49,29 @@ impl Greeting {
 }
 
 #[repr(C)]
-pub struct Person<'n> {
-    first_name: &'n c_char,
-    last_name: &'n c_char
+pub struct Person {
+    first_name: *const c_char,
+    last_name: *const c_char
 }
 
 /// Example of just calling into Rust
 #[no_mangle] // "no_mangle", so that our Java code can still see the Rust function after it's compiled
 #[allow(non_snake_case)] // Names must match Java names, which are camelCased, so tell rustc not to complain
-pub extern fn printGreeting(name: &c_char) {
+pub extern fn printGreeting(name: *const c_char) {
     // Convert the C string to a Rust one
-    let name = to_string(name);
+    let name = to_string(&name);
     println!("Hello, {}", name);
 }
 
 /// Example of passing and returning a value
 #[no_mangle]
 #[allow(non_snake_case)]
-// Argument pointer originating in Java (&c_char) is a Rust *reference* (i.e. it's borrowed from Java)
-pub extern fn renderGreeting(name: &c_char) -> *const c_char {  // Returning a string as a pointer
-    let name = to_string(name);
+// Argument pointer originating in Java (*const c_char) is a Rust *reference* (i.e. it's borrowed from Java)
+pub extern fn renderGreeting(name: *const c_char) -> *const c_char {  // Returning a string as a pointer
+    let name = to_string(&name);
 
     // Convert the Rust string back to a C string so that we can return it
-    to_ptr(format!("Hello, {}!", name).to_c_str())
+    to_ptr(format!("Hello, {}!", name))
 }
 
 /// Example of passing a callback
@@ -91,9 +94,9 @@ pub extern fn callMeBack(callback: extern "stdcall" fn(*const c_char)) { // "std
 /// Example of passing a struct to Rust
 #[no_mangle]
 pub extern fn greet(person: &Person) -> *const c_char {
-    let first_name = to_string(person.first_name);
-    let last_name = to_string(person.last_name);
-    to_ptr(format!("Hello, {} {}!", first_name, last_name).to_c_str())
+    let first_name = to_string(&person.first_name);
+    let last_name = to_string(&person.last_name);
+    to_ptr(format!("Hello, {} {}!", first_name, last_name))
 }
 
 /// Example of returning a struct from Rust by value
@@ -139,14 +142,18 @@ pub extern fn renderGreetings() -> Box<GreetingSet> {
     }
 }
 
-fn to_string(pointer: &c_char) -> String {
-    unsafe { &CString::new(pointer, false) }.as_str().expect("Couldn't get string from C-string").to_string()
+fn to_string(pointer: &*const c_char) -> String {
+    let slice = unsafe { ffi::c_str_to_bytes(pointer) };
+    str::from_utf8(slice).unwrap().to_string()
 }
 
 fn data(string: &str) -> *const c_char {
-    to_ptr(string.to_string().to_c_str())
+    to_ptr(string.to_string())
 }
 
-fn to_ptr(c_string: CString) -> *const c_char {
-    unsafe { c_string.into_inner() }
+fn to_ptr(string: String) -> *const c_char {
+    let cs = CString::from_slice(string.as_bytes());
+    let ptr = cs.as_ptr();
+    unsafe { mem::forget(cs) };
+    ptr
 }
