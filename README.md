@@ -1,14 +1,46 @@
 # Java/Rust Example
 
-An example project containing a Java wrapper of a Rust library.
+An example project showing how to call into Rust code from Java.
 
 [![Build Status](https://travis-ci.org/drrb/java-rust-example.svg?branch=master)](https://travis-ci.org/drrb/java-rust-example)
 
 ## Contents
+
 So far, the project contains
-- A Java interface to the Rust library, using [JNA](https://github.com/twall/jna)
-- An example script to build the Rust library and put it on the classpath where JNA can find it
+- Rust code and Java code
+- A Java interface to the Rust code, using [JNA](https://github.com/twall/jna)
+- A script to build the Rust code into a library and put it on the classpath where JNA can find it
 - Examples of passing strings, structs, and callback functions between Java and Rust
+
+## Getting Started
+
+The best place to start looking at the examples is in the test code
+(src/test/java/com/github/drrb/javarust/GreetingsTest.java). The test contains
+lots of executable examples of calling into Rust code from Java.
+
+So far, it contains examples of:
+- passing simple arguments from Java to Rust
+- returning simple values from Rust to Java
+- passing structs to Rust from Java
+- returning structs from Rust by value and by reference
+- passing callbacks to Rust that get called from the Rust code
+
+From the test, you can navigate to the implementation. The implementation is
+heavily commented to explain it.
+
+## Building and Running the Tests
+
+To build the project, use Maven. This will build a jar containing the Rust code 
+and the Java code. This assumes you have Rust installed, and on the path.
+
+```
+mvn package
+```
+
+## Platform Support
+
+This project is tested on OSX and Ubuntu. It should work on OSX, and any 32 bit
+or 64 bit Gnu/Linux system.
 
 ## License
 

@@ -16,13 +16,14 @@
  */
 package com.github.drrb.javarust;
 
-import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-import java.util.Arrays;
+import static java.util.Arrays.asList;
 import java.util.List;
 
 /**
- *
+ * A struct that we return from Rust to Java.
+ * 
+ * This is the Java representation of the Greeting struct in Rust.
  */
 public class Greeting extends Structure {
 
@@ -33,16 +34,13 @@ public class Greeting extends Structure {
     }
 
     public String text;
-
-    public Greeting() {
-    }
-
-    public Greeting(Pointer p) {
-        super(p);
+    
+    public String getText() {
+        return text;
     }
 
     @Override
     protected List<String> getFieldOrder() {
-        return Arrays.asList("text");
+        return asList("text");
     }
 }

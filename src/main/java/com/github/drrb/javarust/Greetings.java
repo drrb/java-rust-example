@@ -22,15 +22,71 @@ import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
 
 public interface Greetings extends Library {
-
-    /**
-     * JNA will load a libarary with this name from the classpath.
-     *
-     * E.g. on OSX, the library needs to be in /darwin/libgreetings.dylib
-     */
     String JNA_LIBRARY_NAME = "greetings";
     NativeLibrary JNA_NATIVE_LIB = NativeLibrary.getInstance(JNA_LIBRARY_NAME);
+    
+    /**
+     * JNA will load this library (a Rust crate) from the classpath.
+     *
+     * The location differs per platform.
+     * E.g. on OSX, the library needs to be in /darwin/libgreetings.dylib
+     * 
+     * In this project, the crate source lives in 
+     * src/main/rust/com/github/drrb/javarust/lib/greetings.rs . During the build,
+     * Maven will run scripts/rust-compile.sh, which will compile the crate and
+     * copy it into target/classes/&lt;platform-specific-name&gt;.
+     */
     Greetings INSTANCE = (Greetings) Native.loadLibrary(JNA_LIBRARY_NAME, Greetings.class);
+
+    /**
+     * Passing a parameter to a Rust function
+     */
+    void printGreeting(String name);
+
+    /**
+     * Getting a return value back from Rust
+     */
+    String renderGreeting(String name);
+
+    /**
+     * Passing a struct into Rust
+     */
+    String greet(Person john);
+
+    /**
+     * Getting a pointer to a struct from Rust.
+     * 
+     * This is the same as returning a {@link Greeting.ByReference}. JNA assumes
+     * it's by reference when it's returned from a native function.
+     */
+    Greeting getGreetingByReference();
+
+    /**
+     * Getting a struct back from Rust.
+     * 
+     * NB: we must specify that this is not a pointer (i.e. return an instance of
+     * Greeting.ByValue instead of just Greeting) because JNA assumes that return
+     * values that are structs are pointers unless we say otherwise.
+     */
+    Greeting.ByValue getGreetingByValue();
+
+    /**
+     * Getting a pointer to a struct that contains an array of structs.
+     * 
+     * This is the same as returning a {@link GreetingSet.ByReference}. JNA assumes
+     * it's by reference when it's returned from a native function.
+     */
+    GreetingSet renderGreetings();
+
+    /**
+     * Passing a callback that will be called from Rust with individual strings
+     */
+    void callMeBack(GreetingCallback callback);
+
+    /**
+     * Passing a callback that will be called from Rust with an array of strings
+     */
+    void sendGreetings(GreetingSetCallback callback);
 
     /**
      * A callback function to pass to Rust
@@ -42,29 +98,13 @@ public interface Greetings extends Library {
         void apply(String greeting);
     }
 
+    /**
+     * A callback function to pass to Rust
+     *
+     * @see #sendGreetings
+     */
     interface GreetingSetCallback extends Callback {
 
         void apply(GreetingSet.ByReference greetingSet);
     }
-
-    void printGreeting(String name);
-
-    String renderGreeting(String name);
-
-    void callMeBack(GreetingCallback callback);
-
-    String greet(Person john);
-
-    // Just returning a Greeting here gives you a segfault
-    Greeting.ByValue getGreetingByValue();
-
-    // Just returning a Greeting here gives you a segfault
-    Greeting.ByReference getGreetingByReference();
-
-    GreetingSet.ByReference renderGreetings();
-
-    void sendGreetings(GreetingSetCallback callback);
-
-    GreetingSet renderGreetingsInParallel(int numberOfGreetings, String name);
-
 }

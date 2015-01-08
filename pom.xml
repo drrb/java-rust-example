@@ -80,14 +80,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.16</version>
                 <configuration>
+                    <!--
+                    Sometimes we get errors (e.g. segfaults) calling into Rust
+                    from Java (usually my fault: not Rust's!).
+                    
+                    We want the build to fail if that happens.
+                    -->
                     <forkCount>0</forkCount>
                 </configuration>
             </plugin>
 
             <!--
-            Compile the Rust Library
+            Compile the Rust crate
 
-            The library will end up on the classpath
+            The resulting library will end up on the classpath in the appropriate
+            format for the current system. See scripts/rust-compile.sh for details.
             -->
             <plugin>
                 <artifactId>exec-maven-plugin</artifactId>

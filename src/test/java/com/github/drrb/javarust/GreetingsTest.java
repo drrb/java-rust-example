@@ -21,6 +21,7 @@ import com.github.drrb.javarust.test.MethodPrintingRule;
 import static java.util.Arrays.asList;
 import java.util.LinkedList;
 import java.util.List;
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,28 +39,19 @@ public class GreetingsTest {
     }
 
     @Test
-    public void shouldPrintGreetingWithoutCrashing() {
-        library.printGreeting("World");
+    public void shouldAcceptStringParameterFromJavaToRust() {
+        library.printGreeting("World"); //Printed in the console
     }
 
     @Test
-    public void shouldRenderGreeting() {
+    public void shouldAcceptStringFromJavaToRustAndReturnAnotherOne() {
         String greeting = library.renderGreeting("World");
 
         assertThat(greeting, is("Hello, World!"));
     }
 
     @Test
-    public void shouldCallMeBack() {
-        final List<String> greetings = new LinkedList<>();
-        library.callMeBack((greeting) -> {
-            greetings.add(greeting);
-        });
-        assertThat(greetings, is(asList("Hello there!")));
-    }
-
-    @Test
-    public void shouldSendAStructToRust() {
+    public void shouldAcceptAStructFromJavaToRust() {
         Person john = new Person();
         john.firstName = "John";
         john.lastName = "Smith";
@@ -80,19 +72,32 @@ public class GreetingsTest {
     }
 
     @Test
-    public void shouldGetListOfGreetingsInACallback() {
+    public void shouldGetAStringFromRustInACallback() {
         final List<String> greetings = new LinkedList<>();
-        library.sendGreetings((greetingSet) -> {
-            greetings.addAll(greetingSet.getGreetings());
+        library.callMeBack((greeting) -> {
+            greetings.add(greeting);
         });
-
-        assertThat(greetings, is(asList("Hello!", "Hello again!")));
+        assertThat(greetings, is(asList("Hello there!")));
     }
 
     @Test
-    public void shouldRenderListOfGreetings() {
+    public void shouldGetListOfStringsFromRustInACallback() {
+        final List<Greeting> greetings = new LinkedList<>();
+        library.sendGreetings((greetingSet) -> {
+            greetings.addAll(greetingSet.getGreetings());
+        });
+        List<String> greetingStrings = greetings.stream().map(Greeting::getText).collect(toList());
+
+        assertThat(greetingStrings, is(asList("Hello!", "Hello again!")));
+    }
+
+    @Test
+    public void shouldGetAStructFromRustContainingAnArrayOfStructs() {
         GreetingSet result = library.renderGreetings();
-        List<String> greetings = result.getGreetings();
+        List<String> greetings = result.getGreetings()
+                .stream()
+                .map(Greeting::getText)
+                .collect(toList());
 
         assertThat(greetings, is(asList("Hello!", "Hello again!")));
     }
