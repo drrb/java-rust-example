@@ -15,8 +15,9 @@ So far, the project contains
 ## Getting Started
 
 The best place to start looking at the examples is in the test code
-(src/test/java/com/github/drrb/javarust/GreetingsTest.java). The test contains
-lots of executable examples of calling into Rust code from Java.
+[GreetingsTest.java](src/test/java/com/github/drrb/javarust/GreetingsTest.java).
+The test contains lots of executable examples of calling into Rust code from
+Java.
 
 So far, it contains examples of:
 - passing simple arguments from Java to Rust
@@ -25,8 +26,9 @@ So far, it contains examples of:
 - returning structs from Rust by value and by reference
 - passing callbacks to Rust that get called from the Rust code
 
-From the test, you can navigate to the implementation. The implementation is
-heavily commented to explain it.
+From the test, you can navigate to the [Java code](src/main/java/com/github/drrb/javarust/Greetings.java) 
+and the [Rust code](src/main/rust/com/github/drrb/javarust/greetings.rs). The
+implementation is heavily commented to explain it.
 
 ## Building and Running the Tests
 

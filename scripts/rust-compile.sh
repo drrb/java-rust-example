@@ -14,11 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#
-# This script compiles all crates in src/main/rust/**/*.rs and copies their
-# libraries into target/classes/<platform-specific-name> so that JNA can find
-# them at runtime.
-#
+#================================================================================ 
+# This script is run by Maven during the build. It compiles all crates in
+# src/main/rust/**/*.rs and copies their libraries into
+# target/classes/<platform-specific-name> so that JNA can find them at runtime.
+#================================================================================ 
 
 set -e
 set -u

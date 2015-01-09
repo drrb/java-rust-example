@@ -14,6 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+// Create a library, not an executable binary
 #![crate_type = "dylib"]
 
 extern crate libc;
@@ -24,39 +26,51 @@ use std::str;
 use std::mem;
 use libc::{c_int,c_char};
 
-// This suppresses compiler warnings: Rustc thinks we don't use it because it's actually only used from Java
-#[allow(dead_code)]
-// This makes sure the structs are represented in memory in a way JNA can read them
+// GreetingSet corresponds to com.github.drrb.javarust.GreetingSet in Java. It is marked with
+// repr(c), as are all the structs passed back to Java. This makes sure the structs are represented
+// in memory in a way JNA can read them.
 #[repr(C)]
-// GreetingSet corresponds to com.github.drrb.javarust.GreetingSet in Java
 pub struct GreetingSet {
-    greetings: Box<[Greeting]>, // This is converted to a Greeting.ByReference by JNA
-    number_of_greetings: c_int  // c_int is converted to a Java int by JNA
+    // A pointer to an array of Greetings. This is converted to a Greeting.ByReference by JNA.
+    greetings: Box<[Greeting]>,
+    // The size of the array. We need to pass it back to Java so that we know how long the array
+    // is (JNA can't guess the size). We need to do this with all arrays created in Java and read
+    // in Rust (or vise-versa). This c_int is converted to a Java int by JNA.
+    number_of_greetings: c_int
 }
 
-#[allow(dead_code)]
+// Greeting corresponds to com.github.drrb.javarust.Greeting in Java. It is marked with
+// allow(missing_copy_implementations) to suppress compiler warnings encouraging us to 
+// implement the Copy trait.
 #[repr(C)]
-// Greeting corresponds to com.github.drrb.javarust.Greeting in Java
+#[allow(missing_copy_implementations)]
 pub struct Greeting {
-    // A pointer to the beginning of a string. Converted to a Java String by JNA
+    // A pointer to the beginning of a string. Converted to a Java String by JNA. All strings
+    // passed between Rust and Java are represented in this way.
     text: *const c_char
 }
 
 impl Greeting {
+    // A constructor, for convenience
     fn new(string: &str) -> Greeting {
         Greeting { text: to_ptr(string.to_string()) }
     }
 }
 
 #[repr(C)]
+#[allow(missing_copy_implementations)]
 pub struct Person {
     first_name: *const c_char,
     last_name: *const c_char
 }
 
 /// Example of just calling into Rust
-#[no_mangle] // "no_mangle", so that our Java code can still see the Rust function after it's compiled
-#[allow(non_snake_case)] // Names must match Java names, which are camelCased, so tell rustc not to complain
+/// It is marked as "no_mangle", so that our Java code can still see the Rust function after it's
+/// compiled (normally the Rust compiler changes the name during compilation. It is marked as
+/// allow(snake_case) because Rust functions are supposed to be written in snake_case, but we need
+/// to use camelCase to match the name of the function in Java.
+#[no_mangle]
+#[allow(non_snake_case)]
 pub extern fn printGreeting(name: *const c_char) {
     // Convert the C string to a Rust one
     let name = to_string(&name);
@@ -64,31 +78,14 @@ pub extern fn printGreeting(name: *const c_char) {
 }
 
 /// Example of passing and returning a value
+/// The string argument and return types are native C strings (pointers to arrays of c_chars).
 #[no_mangle]
 #[allow(non_snake_case)]
-// Argument pointer originating in Java (*const c_char) is a Rust *reference* (i.e. it's borrowed from Java)
-pub extern fn renderGreeting(name: *const c_char) -> *const c_char {  // Returning a string as a pointer
+pub extern fn renderGreeting(name: *const c_char) -> *const c_char {
     let name = to_string(&name);
 
     // Convert the Rust string back to a C string so that we can return it
     to_ptr(format!("Hello, {}!", name))
-}
-
-/// Example of passing a callback
-#[no_mangle]
-#[cfg(not(windows))]
-#[allow(non_snake_case)]
-pub extern fn callMeBack(callback: extern "C" fn(*const c_char)) { // The function argument here is an "extern" one, so that we can pass it in from Java
-    // Call the Java method
-    callback(to_ptr("Hello there!".to_string()));
-}
-
-/// Example of passing a callback (Windows version)
-#[no_mangle]
-#[cfg(windows)]
-#[allow(non_snake_case)]
-pub extern fn callMeBack(callback: extern "stdcall" fn(*const c_char)) { // "stdcall" is the calling convention Windows uses
-    callback(to_ptr("Hello there!".to_string()));
 }
 
 /// Example of passing a struct to Rust
@@ -107,16 +104,41 @@ pub extern fn getGreetingByValue() -> Greeting {
 }
 
 /// Example of returning a struct from Rust by reference
+/// Note that we return an owned pointer to the struct (i.e a Box containing the struct). This
+/// tells Rust that the Java code now "owns" the pointer, so Rust shouldn't try to clean it up at
+/// the end of the function.
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn getGreetingByReference() -> Box<Greeting> { // Return an owned pointer to the struct. The Java code now "owns" the pointer.
+pub extern fn getGreetingByReference() -> Box<Greeting> {
     box Greeting::new("Hello from Rust!")
 }
 
+/// Example of passing a callback function
+/// The callback from Java (an object with an apply() method) is turned into a function pointer by
+/// JNA.
+#[no_mangle]
+#[cfg(not(windows))]
+#[allow(non_snake_case)]
+pub extern fn callMeBack(callback: extern "C" fn(*const c_char)) { // The function argument here is an "extern" one, so that we can pass it in from Java
+    // Call the Java method
+    callback(to_ptr("Hello there!".to_string()));
+}
+
+/// Example of passing a callback (Windows version)
+/// Note that the callback version is marked as "stdcall", because that is the calling convention
+/// Windows uses.
+#[no_mangle]
+#[cfg(windows)]
+#[allow(non_snake_case)]
+pub extern fn callMeBack(callback: extern "stdcall" fn(*const c_char)) {
+    callback(to_ptr("Hello there!".to_string()));
+}
+
 /// More complicated callback example
+/// In this example we send a pointer to a struct back to Java via the callback.
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn sendGreetings(callback: extern "C" fn(Box<GreetingSet>)) { // The function argument here is an "extern" one, so that we can pass it in from Java
+pub extern fn sendGreetings(callback: extern "C" fn(Box<GreetingSet>)) {
     let greetings = vec![ Greeting::new("Hello!"), Greeting::new("Hello again!") ];
     let num_greetings = greetings.len();
 
@@ -129,7 +151,7 @@ pub extern fn sendGreetings(callback: extern "C" fn(Box<GreetingSet>)) { // The 
     callback(set);
 }
 
-/// Example of returning a struct from Rust
+/// Example of returning a more complicated struct from Rust
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern fn renderGreetings() -> Box<GreetingSet> {
@@ -143,15 +165,17 @@ pub extern fn renderGreetings() -> Box<GreetingSet> {
 }
 
 #[no_mangle]
+#[allow(non_snake_case)]
 pub extern fn dropGreeting(_: Box<Greeting>) {
-    // Do nothing here. Because we own it here (we're using a Box) and we're not returning it, Rust
-    // will assume we don't want it anymore.
+    // Do nothing here. Because we own the Greeting here (we're using a Box) and we're not
+    // returning it, Rust will assume we don't want it anymore and clean it up.
 }
 
 #[no_mangle]
+#[allow(non_snake_case)]
 pub extern fn dropGreetingSet(_: Box<GreetingSet>) {
-    // Do nothing here. Because we own it here (we're using a Box) and we're not returning it, Rust
-    // will assume we don't want it anymore.
+    // Do nothing here. Because we own the GreetingSet here (we're using a Box) and we're not
+    // returning it, Rust will assume we don't want it anymore and clean it up.
 }
 
 /// Convert a native string to a Rust string
