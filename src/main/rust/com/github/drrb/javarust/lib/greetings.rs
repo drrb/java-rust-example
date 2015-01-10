@@ -74,7 +74,7 @@ pub struct Person {
 pub extern fn printGreeting(name: *const c_char) {
     // Convert the C string to a Rust one
     let name = to_string(&name);
-    println!("Hello, {}", name);
+    println!("Hello from Rust, {}", name);
 }
 
 /// Example of passing and returning a value

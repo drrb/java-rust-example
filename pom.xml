@@ -64,6 +64,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </dependencies>
 
     <build>
+        <finalName>greeter</finalName>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -83,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <!--
                     Sometimes we get errors (e.g. segfaults) calling into Rust
                     from Java (usually my fault: not Rust's!).
-                    
+
                     We want the build to fail if that happens.
                     -->
                     <forkCount>0</forkCount>
@@ -110,6 +112,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <configuration>
                             <executable>scripts/rust-compile.sh</executable>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+            Package it in an executable Jar
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.github.drrb.javarust.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
