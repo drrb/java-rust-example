@@ -15,9 +15,11 @@ So far, the project contains
 ## Getting Started
 
 The best place to start looking at the examples is in the test code
-[GreetingsTest.java](src/test/java/com/github/drrb/javarust/GreetingsTest.java).
+([GreetingsTest.java](src/test/java/com/github/drrb/javarust/GreetingsTest.java)).
 The test contains lots of executable examples of calling into Rust code from
-Java.
+Java.  From the test, you can navigate to the [Java code](src/main/java/com/github/drrb/javarust/Greetings.java)
+and the [Rust code](src/main/rust/com/github/drrb/javarust/lib/greetings.rs). The
+implementation is heavily commented to explain it.
 
 So far, it contains examples of the following (click the links to see!):
 - *[Arguments](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L42)*: passing simple arguments from Java to Rust ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L44) / [Rust side](src/main/rust/com/github/drrb/javarust/lib/greetings.rs#L74))
@@ -26,10 +28,6 @@ So far, it contains examples of the following (click the links to see!):
 - *[Returning structs (2 examples)](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L63)*: returning structs from Rust by value and by reference ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L62) / [Rust side](src/main/rust/com/github/drrb/javarust/lib/greetings.rs#L102))
 - *[Callbacks (3 examples)](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L80)*: passing callbacks to Rust that get called from the Rust code ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L84) / [Rust side](src/main/rust/com/github/drrb/javarust/lib/greetings.rs#L122))
 - *[Freeing memory](src/test/java/com/github/drrb/javarust/GreetingsTest.java#L76)*: freeing memory allocated in Rust ([Java side](src/main/java/com/github/drrb/javarust/Greetings.java#L144) / [Rust side](src/main/rust/com/github/drrb/javarust/lib/greetings.rs#L169))
-
-From the test, you can navigate to the [Java code](src/main/java/com/github/drrb/javarust/Greetings.java) 
-and the [Rust code](src/main/rust/com/github/drrb/javarust/lib/greetings.rs). The
-implementation is heavily commented to explain it.
 
 ## Building and Running the Tests
 
