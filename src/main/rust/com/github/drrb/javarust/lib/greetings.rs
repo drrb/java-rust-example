@@ -110,7 +110,7 @@ pub extern fn getGreetingByValue() -> Greeting {
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern fn getGreetingByReference() -> Box<Greeting> {
-    box Greeting::new("Hello from Rust!")
+    Box::new(Greeting::new("Hello from Rust!"))
 }
 
 /// Example of passing a callback function
@@ -142,12 +142,12 @@ pub extern fn sendGreetings(callback: extern "C" fn(Box<GreetingSet>)) {
     let greetings = vec![ Greeting::new("Hello!"), Greeting::new("Hello again!") ];
     let num_greetings = greetings.len();
 
-    let set = box GreetingSet {
+    let set = Box::new(GreetingSet {
         // Get a pointer to the vector as an array, so that we can pass it back to Java
         greetings: greetings.into_boxed_slice(),
         // Also return the length of the array, so that we can create the array back in Java
         number_of_greetings: num_greetings as c_int
-    };
+    });
     callback(set);
 }
 
@@ -158,10 +158,10 @@ pub extern fn renderGreetings() -> Box<GreetingSet> {
     let greetings = vec![ Greeting::new("Hello!"), Greeting::new("Hello again!") ];
     let num_greetings = greetings.len();
 
-    box GreetingSet {
+    Box::new(GreetingSet {
         greetings: greetings.into_boxed_slice(),
         number_of_greetings: num_greetings as c_int
-    }
+    })
 }
 
 #[no_mangle]
