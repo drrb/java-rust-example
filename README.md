@@ -19,8 +19,8 @@ The best place to start looking at the examples is in the test code
 The test contains lots of executable examples of calling into Rust code from
 Java.
 
-So far, it contains examples of:
-- passing simple arguments from Java to Rust
+So far, it contains examples of the following (click the links to see!):
+- passing simple arguments from Java to [Rust](src/main/rust/com/github/drrb/javarust/lib/greetings.rs#L74)
 - returning simple values from Rust to Java
 - passing structs to Rust from Java
 - returning structs from Rust by value and by reference
