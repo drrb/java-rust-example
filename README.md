@@ -27,7 +27,7 @@ So far, it contains examples of:
 - passing callbacks to Rust that get called from the Rust code
 
 From the test, you can navigate to the [Java code](src/main/java/com/github/drrb/javarust/Greetings.java) 
-and the [Rust code](src/main/rust/com/github/drrb/javarust/greetings.rs). The
+and the [Rust code](src/main/rust/com/github/drrb/javarust/lib/greetings.rs). The
 implementation is heavily commented to explain it.
 
 ## Building and Running the Tests
