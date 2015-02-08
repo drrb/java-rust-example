@@ -4,6 +4,12 @@ An example project showing how to call into Rust code from Java.
 
 [![Build Status](https://travis-ci.org/drrb/java-rust-example.svg?branch=master)](https://travis-ci.org/drrb/java-rust-example)
 
+## Requirements
+
+- Tested on OSX and Linux. May also work on Windows!
+- Java 8
+- Rust (tested againts post-alpha nightlies)
+
 ## Contents
 
 So far, the project contains

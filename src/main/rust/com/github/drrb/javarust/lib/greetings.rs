@@ -17,6 +17,9 @@
 
 // Create a library, not an executable binary
 #![crate_type = "dylib"]
+#![feature(collections)]
+#![feature(libc)]
+#![feature(std_misc)]
 
 extern crate libc;
 

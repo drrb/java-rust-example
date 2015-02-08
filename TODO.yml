@@ -1,2 +1,1 @@
 - Get the examples with an array field on a struct working
-- Make it work on Windows (call rustc from Java?)
