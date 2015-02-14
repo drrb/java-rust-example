@@ -28,7 +28,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-
 public class GreetingsTest {
 
     @Rule
@@ -48,7 +47,6 @@ public class GreetingsTest {
     @Test
     public void shouldAcceptStringFromJavaToRustAndReturnAnotherOne() {
         String greeting = library.renderGreeting("World");
-
         assertThat(greeting, is("Hello, World!"));
     }
 
