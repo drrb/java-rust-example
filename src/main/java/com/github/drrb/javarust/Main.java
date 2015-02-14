@@ -18,7 +18,6 @@ package com.github.drrb.javarust;
 
 import static java.util.Arrays.asList;
 import java.util.List;
-import static java.util.stream.Collectors.joining;
 
 /**
  * An entry point that says hello from Rust code
@@ -32,7 +31,7 @@ public class Main {
         if (arguments.isEmpty()) {
             name = "World";
         } else {
-            name = arguments.stream().collect(joining(" "));
+            name = arguments.get(0);
         }
         Greetings.INSTANCE.printGreeting(name);
     }
