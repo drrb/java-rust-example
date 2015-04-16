@@ -17,17 +17,20 @@
 
 // Create a library, not an executable binary
 #![crate_type = "dylib"]
-#![feature(collections)]
-#![feature(libc)]
-#![feature(std_misc)]
 
-extern crate libc;
-
-use std::ffi::CString;
-use std::ffi;
+use std::ffi::{CStr,CString};
 use std::str;
 use std::mem;
-use libc::{c_int,c_char};
+
+// Normally we'd get these from libc, but that's unstable in 1.0 Beta
+mod mylibc {
+    #[allow(non_camel_case_types)]
+    pub type c_int = i32;
+    #[allow(non_camel_case_types)]
+    pub type c_char = i8;
+}
+use mylibc::c_int;
+use mylibc::c_char;
 
 // GreetingSet corresponds to com.github.drrb.javarust.GreetingSet in Java. It is marked with
 // repr(c), as are all the structs passed back to Java. This makes sure the structs are represented
@@ -76,7 +79,7 @@ pub struct Person {
 #[allow(non_snake_case)]
 pub extern fn printGreeting(name: *const c_char) {
     // Convert the C string to a Rust one
-    let name = to_string(&name);
+    let name = to_string(name);
     println!("Hello from Rust, {}", name);
 }
 
@@ -85,7 +88,7 @@ pub extern fn printGreeting(name: *const c_char) {
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern fn renderGreeting(name: *const c_char) -> *const c_char {
-    let name = to_string(&name);
+    let name = to_string(name);
 
     // Convert the Rust string back to a C string so that we can return it
     to_ptr(format!("Hello, {}!", name))
@@ -94,8 +97,8 @@ pub extern fn renderGreeting(name: *const c_char) -> *const c_char {
 /// Example of passing a struct to Rust
 #[no_mangle]
 pub extern fn greet(person: &Person) -> *const c_char {
-    let first_name = to_string(&person.first_name);
-    let last_name = to_string(&person.last_name);
+    let first_name = to_string(person.first_name);
+    let last_name = to_string(person.last_name);
     to_ptr(format!("Hello, {} {}!", first_name, last_name))
 }
 
@@ -182,14 +185,14 @@ pub extern fn dropGreetingSet(_: Box<GreetingSet>) {
 }
 
 /// Convert a native string to a Rust string
-fn to_string(pointer: &*const c_char) -> String {
-    let slice = unsafe { ffi::c_str_to_bytes(pointer) };
+fn to_string(pointer: *const c_char) -> String {
+    let slice = unsafe { CStr::from_ptr(pointer).to_bytes() };
     str::from_utf8(slice).unwrap().to_string()
 }
 
 /// Convert a Rust string to a native string
 fn to_ptr(string: String) -> *const c_char {
-    let cs = CString::from_slice(string.as_bytes());
+    let cs = CString::new(string.as_bytes()).unwrap();
     let ptr = cs.as_ptr();
     // Tell Rust not to clean up the string while we still have a pointer to it.
     // Otherwise, we'll get a segfault.
