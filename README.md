@@ -8,7 +8,7 @@ An example project showing how to call into Rust code from Java.
 
 - Tested on OSX and Linux. May also work on Windows!
 - Java 7+
-- Rust (tested againts post-alpha nightlies)
+- Rust (tested 1.0 Beta)
 
 ## Contents
 
