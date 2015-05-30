@@ -8,9 +8,8 @@ An example project showing how to call into Rust code from Java.
 
 ## Requirements
 
-- Tested on OSX and Linux. May also work on Windows!
 - Java 7+
-- Rust (tested 1.0 Beta)
+- Rust (tested with 1.0, nightly)
 
 ## Contents
 
@@ -56,12 +55,11 @@ Hello from Rust, John
 
 ## Platform Support
 
-This project is tested on OSX and Ubuntu. It should work on OSX, and any 32 bit
-or 64 bit Gnu/Linux system.
+This project is tested on OSX, Ubuntu, and Windows. It should also work on any 32 bit or 64 bit Gnu/Linux system.
 
 ## Limitations
 
-Some of the examples leak memory. Any memory that is allocated in Rust needs to be freed manually because it's not managed by JNA. Some examples pass objects back into Rust to be dropped for this reason, but we don't clean up every thing properly (strings, for example). This is almost certainly not a limitation of Rust, but a limitation of my current understanding of Rust.
+Some of the examples leak memory. Any memory that is allocated in Rust needs to be freed manually because it's not managed by JNA. Some examples pass objects back into Rust to be dropped for this reason, but we don't clean up everything properly (strings, for example). This is almost certainly not a limitation of Rust, but a limitation of my current understanding of Rust.
 
 ## License
 
