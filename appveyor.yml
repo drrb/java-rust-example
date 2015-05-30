@@ -1,0 +1,21 @@
+version: '{build}'
+os: Windows Server 2012
+environment:
+    matrix:
+        - JAVA_HOME: C:\Program Files\Java\jdk1.7.0
+        - JAVA_HOME: C:\Program Files\Java\jdk1.8.0
+install:
+  - ps: choco install maven
+  - ps: src/build/scripts/rustup.ps1
+  - ps: $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+  - mvn --version
+  - rustc --version
+  - cargo --version
+build_script:
+  - mvn --batch-mode clean package -DskipTests
+test_script:
+  - mvn --batch-mode clean package
+artifacts:
+  - path: target/rust-libs/*
+cache:
+  - C:\Users\appveyor\.m2
