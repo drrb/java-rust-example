@@ -1,8 +1,11 @@
 language: java
 jdk:
     - oraclejdk8
+env:
+    - RUST_CHANNEL=stable
+    - RUST_CHANNEL=nightly
 before_install:
   - yes | sudo add-apt-repository ppa:hansjorg/rust
   - sudo apt-get update
 install:
-  - sudo apt-get install rust-nightly
+  - sudo apt-get install rust-${RUST_CHANNEL}
