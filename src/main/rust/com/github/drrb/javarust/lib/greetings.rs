@@ -196,6 +196,6 @@ fn to_ptr(string: String) -> *const c_char {
     let ptr = cs.as_ptr();
     // Tell Rust not to clean up the string while we still have a pointer to it.
     // Otherwise, we'll get a segfault.
-    unsafe { mem::forget(cs) };
+    mem::forget(cs);
     ptr
 }
