@@ -17,15 +17,18 @@
 package com.github.drrb.javarust;
 
 import com.sun.jna.Structure;
-import static java.util.Arrays.asList;
+
+import java.io.Closeable;
 import java.util.List;
+
+import static java.util.Arrays.asList;
 
 /**
  * A struct that we return from Rust to Java.
  * 
  * This is the Java representation of the Greeting struct in Rust.
  */
-public class Greeting extends Structure {
+public class Greeting extends Structure implements Closeable {
 
     public static class ByReference extends Greeting implements Structure.ByReference {
     }
@@ -42,5 +45,11 @@ public class Greeting extends Structure {
     @Override
     protected List<String> getFieldOrder() {
         return asList("text");
+    }
+
+    @Override
+    public void close() {
+        // Send the struct back to rust for the memory to be freed
+        Greetings.INSTANCE.dropGreeting(this);
     }
 }

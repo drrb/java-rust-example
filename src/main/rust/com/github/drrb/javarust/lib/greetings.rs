@@ -21,28 +21,23 @@
 use std::ffi::{CStr,CString};
 use std::str;
 use std::mem;
-
-// Normally we'd get these from libc, but that's unstable in 1.0 Beta
-mod mylibc {
-    #[allow(non_camel_case_types)]
-    pub type c_int = i32;
-    #[allow(non_camel_case_types)]
-    pub type c_char = i8;
-}
-use mylibc::c_int;
-use mylibc::c_char;
+use std::os::raw::c_char;
 
 // GreetingSet corresponds to com.github.drrb.javarust.GreetingSet in Java. It is marked with
 // repr(c), as are all the structs passed back to Java. This makes sure the structs are represented
 // in memory in a way JNA can read them.
 #[repr(C)]
 pub struct GreetingSet {
-    // A pointer to an array of Greetings. This is converted to a Greeting.ByReference by JNA.
-    greetings: Box<[Greeting]>,
-    // The size of the array. We need to pass it back to Java so that we know how long the array
-    // is (JNA can't guess the size). We need to do this with all arrays created in Java and read
-    // in Rust (or vise-versa). This c_int is converted to a Java int by JNA.
-    number_of_greetings: c_int
+    // A struct that includes a pointer to an array of Greetings and a size. JNA will convert this
+    // to two fields: a Greeting.ByReference and an int.
+    greetings: Box<[Greeting]>
+}
+
+impl Drop for GreetingSet {
+    fn drop(&mut self) {
+        // Print a message when we drop the object, so that we know we're not leaking memory
+        println!("Dropping GreetingSet");
+    }
 }
 
 // Greeting corresponds to com.github.drrb.javarust.Greeting in Java. It is marked with
@@ -60,6 +55,12 @@ impl Greeting {
     // A constructor, for convenience
     fn new(string: &str) -> Greeting {
         Greeting { text: to_ptr(string.to_string()) }
+    }
+}
+
+impl Drop for Greeting {
+    fn drop(&mut self) {
+        println!("Dropping Greeting: {}", to_string(self.text));
     }
 }
 
@@ -144,30 +145,25 @@ pub extern fn callMeBack(callback: extern "stdcall" fn(*const c_char)) {
 /// In this example we send a pointer to a struct back to Java via the callback.
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn sendGreetings(callback: extern "C" fn(Box<GreetingSet>)) {
+pub extern fn sendGreetings(callback: extern "C" fn(&GreetingSet)) {
     let greetings = vec![ Greeting::new("Hello!"), Greeting::new("Hello again!") ];
-    let num_greetings = greetings.len();
 
-    let set = Box::new(GreetingSet {
-        // Get a pointer to the vector as an array, so that we can pass it back to Java
-        greetings: greetings.into_boxed_slice(),
-        // Also return the length of the array, so that we can create the array back in Java
-        number_of_greetings: num_greetings as c_int
-    });
-    callback(set);
+    let set = GreetingSet {
+      // Get a pointer to the vector as an array, so that we can pass it back to Java
+      greetings: greetings.into_boxed_slice()
+    };
+    callback(&set); // Let the callback "borrow" the set. Rust will destroy it after calling the callback
 }
 
 /// Example of returning a more complicated struct from Rust
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn renderGreetings() -> Box<GreetingSet> {
+pub extern fn renderGreetings() -> GreetingSet {
     let greetings = vec![ Greeting::new("Hello!"), Greeting::new("Hello again!") ];
-    let num_greetings = greetings.len();
 
-    Box::new(GreetingSet {
-        greetings: greetings.into_boxed_slice(),
-        number_of_greetings: num_greetings as c_int
-    })
+    GreetingSet {
+        greetings: greetings.into_boxed_slice()
+    }
 }
 
 #[no_mangle]
@@ -179,8 +175,8 @@ pub extern fn dropGreeting(_: Box<Greeting>) {
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn dropGreetingSet(_: Box<GreetingSet>) {
-    // Do nothing here. Because we own the GreetingSet here (we're using a Box) and we're not
+pub extern fn dropGreetingSet(_: GreetingSet) {
+    // Do nothing here. Because we own the GreetingSet here and we're not
     // returning it, Rust will assume we don't want it anymore and clean it up.
 }
 

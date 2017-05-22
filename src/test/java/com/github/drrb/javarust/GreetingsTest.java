@@ -18,15 +18,17 @@ package com.github.drrb.javarust;
 
 import com.github.drrb.javarust.Greetings.GreetingCallback;
 import com.github.drrb.javarust.Greetings.GreetingSetCallback;
-import static com.github.drrb.javarust.test.Matchers.*;
 import com.github.drrb.javarust.test.MethodPrintingRule;
-import static java.util.Arrays.asList;
-import java.util.LinkedList;
-import java.util.List;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import static com.github.drrb.javarust.test.Matchers.is;
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertThat;
 
 public class GreetingsTest {
 
@@ -61,19 +63,17 @@ public class GreetingsTest {
 
     @Test
     public void shouldGetAStructFromRustByValue() {
-        Greeting greeting = library.getGreetingByValue();
-        assertThat(greeting.text, is("Hello from Rust!"));
+        // Using try-with-resources so that memory gets cleaned up. See Greeting.close()
+        try (Greeting greeting = library.getGreetingByValue()) {
+            assertThat(greeting.text, is("Hello from Rust!"));
+        }
     }
 
     @Test
     public void shouldGetAStructFromRustByReference() {
-        Greeting greeting = library.getGreetingByReference();
-
-        assertThat(greeting.text, is("Hello from Rust!"));
-
-        // Free the memory after using it. We need to do this because JNA assumes
-        // that the memory is owned by Rust, so Rust must clean it up.
-        library.dropGreeting(greeting);
+        try (Greeting greeting = library.getGreetingByReference()) {
+            assertThat(greeting.text, is("Hello from Rust!"));
+        }
     }
 
     @Test
@@ -84,7 +84,7 @@ public class GreetingsTest {
                 greetings.add(greeting);
             }
         });
-        assertThat(greetings, is(asList("Hello there!")));
+        assertThat(greetings, contains("Hello there!"));
     }
 
     @Test
@@ -101,21 +101,18 @@ public class GreetingsTest {
             greetingStrings.add(greeting.getText());
         }
 
-        assertThat(greetingStrings, is(asList("Hello!", "Hello again!")));
-        for (Greeting greeting: greetings) {
-            library.dropGreeting(greeting);
-        }
+        assertThat(greetingStrings, contains("Hello!", "Hello again!"));
     }
 
     @Test
     public void shouldGetAStructFromRustContainingAnArrayOfStructs() {
-        GreetingSet result = library.renderGreetings();
-        List<String> greetings = new LinkedList<>();
-        for (Greeting greeting: result.getGreetings()) {
-            greetings.add(greeting.getText());
-        }
+        try (GreetingSet.ByValue result = library.renderGreetings()) {
+            List<String> greetings = new LinkedList<>();
+            for (Greeting greeting : result.getGreetings()) {
+                greetings.add(greeting.getText());
+            }
 
-        assertThat(greetings, is(asList("Hello!", "Hello again!")));
-        library.dropGreetingSet(result);
+            assertThat(greetings, contains("Hello!", "Hello again!"));
+        }
     }
 }

@@ -76,7 +76,7 @@ public interface Greetings extends Library {
      * This is the same as returning a {@link GreetingSet.ByReference}. JNA assumes
      * it's by reference when it's returned from a native function.
      */
-    GreetingSet renderGreetings();
+    GreetingSet.ByValue renderGreetings();
 
     /**
      * Passing a callback that will be called from Rust with individual strings
@@ -116,5 +116,5 @@ public interface Greetings extends Library {
     /**
      * Free the memory used by a GreetingSet
      */
-    void dropGreetingSet(GreetingSet greetingSet);
+    void dropGreetingSet(GreetingSet.ByValue greetingSet);
 }

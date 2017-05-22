@@ -17,6 +17,8 @@
 package com.github.drrb.javarust;
 
 import com.sun.jna.Structure;
+
+import java.io.Closeable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,7 +31,13 @@ public class GreetingSet extends Structure {
     public static class ByReference extends GreetingSet implements Structure.ByReference {
     }
 
-    public static class ByValue extends GreetingSet implements Structure.ByValue {
+    public static class ByValue extends GreetingSet implements Structure.ByValue, Closeable {
+
+        @Override
+        public void close() {
+            Greetings.INSTANCE.dropGreetingSet(this);
+        }
+
     }
 
     /**
@@ -38,7 +46,7 @@ public class GreetingSet extends Structure {
      * Actually, this is a pointer to a bunch of struct instances that are next
      * to each other in memory. We cast it to an array in {@link #getGreetings()}.
      * 
-     * NB: We need to explicity specify that the field is a pointer (i.e. we need
+     * NB: We need to explicitly specify that the field is a pointer (i.e. we need
      * to use ByReference) because, by default, JNA assumes that struct fields 
      * are not pointers (i.e. the if you just say "Greeting", JNA assumes 
      * "Greeting.ByValue" here).

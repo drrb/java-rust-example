@@ -1,0 +1,89 @@
+#!/usr/bin/env ruby
+
+require "ostruct"
+
+class Concept < OpenStruct
+  def to_markdown
+    "*#{test_link}*: #{description} (#{java_link} / #{rust_link})"
+  end
+
+  def test_link
+    link text: name, regex: test_regex, file: "src/test/java/com/github/drrb/javarust/GreetingsTest.java"
+  end
+
+  def java_link
+    link text: "Java side", regex: java_regex, file: "src/main/java/com/github/drrb/javarust/Greetings.java"
+  end
+
+  def rust_link
+    link text: "Rust side", regex: rust_regex, file: "src/main/rust/com/github/drrb/javarust/lib/greetings.rs"
+  end
+
+  private
+  def link(text:, regex:, file:)
+    line = find_line(regex, file)
+    "[#{text}](#{file}#L#{line + 1})"
+  end
+
+  def find_line(regex, file)
+    lines = File.read(file).lines.each_with_index
+    line, index = lines.find {|line, index| line =~ regex}
+    unless line
+      raise "Couldn't find #{regex.inspect} in #{file.inspect}"
+    end
+    index + 1
+  end
+end
+
+class Array
+  def to_markdown_points
+    map {|e| "- #{e}" }.join("\n")
+  end
+end
+
+concepts = [
+  Concept.new(
+    name: "Arguments",
+    description: "passing simple arguments from Java to Rust",
+    test_regex: /shouldAcceptStringParameterFromJavaToRust/,
+    java_regex: /void printGreeting/,
+    rust_regex: /pub extern fn printGreeting/
+  ),
+  Concept.new(
+    name: "Return values",
+    description: "returning simple values from Rust to Java",
+    test_regex: /public void shouldAcceptStringFromJavaToRustAndReturnAnotherOne/,
+    java_regex: /String renderGreeting\(String name\)/,
+    rust_regex: /pub extern fn renderGreeting/
+  ),
+  Concept.new(
+    name: "Struct arguments",
+    description: "passing structs to Rust from Java",
+    test_regex: /public void shouldAcceptAStructFromJavaToRust/,
+    java_regex: /String greet\(Person john\)/,
+    rust_regex: /pub extern fn greet\(person: &Person\)/
+  ),
+  Concept.new(
+    name: "Returning structs (2 examples)",
+    description: "returning structs from Rust by value and by reference",
+    test_regex: /public void shouldGetAStructFromRustByValue/,
+    java_regex: /Greeting.ByValue getGreetingByValue/,
+    rust_regex: /pub extern fn getGreetingByValue/
+  ),
+  Concept.new(
+    name: "Callbacks (3 examples)",
+    description: "passing callbacks to Rust that get called from the Rust code",
+    test_regex: /public void shouldGetAStringFromRustInACallback/,
+    java_regex: /void callMeBack\(GreetingCallback callback\)/,
+    rust_regex: /pub extern fn callMeBack/
+  ),
+  Concept.new(
+    name: "Freeing memory",
+    description: "freeing memory allocated in Rust",
+    test_regex: /try \(Greeting greeting/,
+    java_regex: /void dropGreeting\(Greeting greeting\)/,
+    rust_regex: /pub extern fn dropGreeting/
+  )
+]
+
+puts concepts.map(&:to_markdown).to_markdown_points
