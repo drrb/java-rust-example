@@ -8,6 +8,8 @@ before_install:
   - "curl https://sh.rustup.rs -sSf > rustup && chmod +x rustup"
   - "./rustup -y"
   - "export PATH=$PATH:~/.cargo/bin"
-  - "rustc --version"
+  - rustc --version
 install:
-  -  rustup toolchain install ${RUST_CHANNEL}
+  - rustup toolchain install ${RUST_CHANNEL}
+  - rustup override set ${RUST_CHANNEL}
+  - rustc --version
