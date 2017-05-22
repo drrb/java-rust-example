@@ -22,7 +22,7 @@ class Concept < OpenStruct
   private
   def link(text:, regex:, file:)
     line = find_line(regex, file)
-    "[#{text}](#{file}#L#{line + 1})"
+    "[#{text}](#{file}#L#{line})"
   end
 
   def find_line(regex, file)
