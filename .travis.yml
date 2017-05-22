@@ -5,10 +5,10 @@ env:
     - RUST_CHANNEL=stable
     - RUST_CHANNEL=nightly
 before_install:
-  - which rustup || true
-  - which rustup.sh || true
-  - which rustc || true
-  - sudo apt-get update
-  - apt search rust || true
+  - "which rustup || true"
+  - "which rustup.sh || true"
+  - "which rustc || true"
+  - "sudo apt-get update"
+  - "apt search rust || true"
 install:
   - sudo apt-get install rust-${RUST_CHANNEL}
