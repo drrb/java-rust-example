@@ -5,7 +5,10 @@ env:
     - RUST_CHANNEL=stable
     - RUST_CHANNEL=nightly
 before_install:
-  - yes | sudo add-apt-repository ppa:hansjorg/rust
+  - which rustup
+  - which rustup.sh
+  - which rustc
   - sudo apt-get update
+  - apt search rust
 install:
   - sudo apt-get install rust-${RUST_CHANNEL}
