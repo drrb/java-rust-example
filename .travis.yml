@@ -1,9 +1,12 @@
 language: java
 jdk:
-    - oraclejdk8
+  - oraclejdk8
 env:
-    - RUST_CHANNEL=stable
-    - RUST_CHANNEL=nightly
+  - RUST_CHANNEL=stable
+  - RUST_CHANNEL=nightly
+matrix:
+    allow_failures:
+      - env: RUST_CHANNEL=nightly
 before_install:
   - "curl https://sh.rustup.rs -sSf > rustup && chmod +x rustup"
   - "./rustup -y"
