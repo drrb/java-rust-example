@@ -26,18 +26,12 @@ import java.util.List;
  * A struct that contains an array of structs. This is the Java representation
  * of the GreetingSet struct in Rust (see the Rust code).
  */
-public class GreetingSet extends Structure {
+public class GreetingSet extends Structure implements Closeable {
 
     public static class ByReference extends GreetingSet implements Structure.ByReference {
     }
 
-    public static class ByValue extends GreetingSet implements Structure.ByValue, Closeable {
-
-        @Override
-        public void close() {
-            Greetings.INSTANCE.dropGreetingSet(this);
-        }
-
+    public static class ByValue extends GreetingSet implements Structure.ByValue {
     }
 
     /**
@@ -48,7 +42,7 @@ public class GreetingSet extends Structure {
      * 
      * NB: We need to explicitly specify that the field is a pointer (i.e. we need
      * to use ByReference) because, by default, JNA assumes that struct fields 
-     * are not pointers (i.e. the if you just say "Greeting", JNA assumes 
+     * are not pointers (i.e. if you just say "Greeting", JNA assumes
      * "Greeting.ByValue" here).
      */
     public Greeting.ByReference greetings;
@@ -87,5 +81,21 @@ public class GreetingSet extends Structure {
     @Override
     protected List<String> getFieldOrder() {
         return Arrays.asList("greetings", "numberOfGreetings");
+    }
+
+    /**
+     * Send the GreetingSet back to Rust to be dropped.
+     *
+     * We do this because JNA doesn't free the memory when the object is garbage collected.
+     */
+    @Override
+    public void close() {
+        // Turn off "auto-synch". If it is on, JNA will automatically read all fields
+        // from the struct's memory and update them on the Java object. This synchronization
+        // occurs after every native method call. If it occurs after we drop the struct, JNA
+        // will try to read from the freed memory and cause a segmentation fault.
+        setAutoSynch(false);
+        // Send the struct back to rust for the memory to be freed
+        Greetings.INSTANCE.dropGreetingSet(this);
     }
 }

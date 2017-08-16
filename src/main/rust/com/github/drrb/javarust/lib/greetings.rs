@@ -158,12 +158,12 @@ pub extern fn sendGreetings(callback: extern "C" fn(&GreetingSet)) {
 /// Example of returning a more complicated struct from Rust
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn renderGreetings() -> GreetingSet {
+pub extern fn renderGreetings() -> Box<GreetingSet> {
     let greetings = vec![ Greeting::new("Hello!"), Greeting::new("Hello again!") ];
 
-    GreetingSet {
+    Box::new(GreetingSet {
         greetings: greetings.into_boxed_slice()
-    }
+    })
 }
 
 #[no_mangle]
@@ -175,7 +175,7 @@ pub extern fn dropGreeting(_: Box<Greeting>) {
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern fn dropGreetingSet(_: GreetingSet) {
+pub extern fn dropGreetingSet(_: Box<GreetingSet>) {
     // Do nothing here. Because we own the GreetingSet here and we're not
     // returning it, Rust will assume we don't want it anymore and clean it up.
 }

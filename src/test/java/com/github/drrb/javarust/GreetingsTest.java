@@ -97,7 +97,7 @@ public class GreetingsTest {
         });
 
         List<String> greetingStrings = new LinkedList<>();
-        for (Greeting greeting: greetings) {
+        for (Greeting greeting : greetings) {
             greetingStrings.add(greeting.getText());
         }
 
@@ -106,7 +106,7 @@ public class GreetingsTest {
 
     @Test
     public void shouldGetAStructFromRustContainingAnArrayOfStructs() {
-        try (GreetingSet.ByValue result = library.renderGreetings()) {
+        try (GreetingSet result = library.renderGreetings()) {
             List<String> greetings = new LinkedList<>();
             for (Greeting greeting : result.getGreetings()) {
                 greetings.add(greeting.getText());
