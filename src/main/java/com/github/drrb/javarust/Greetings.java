@@ -36,7 +36,7 @@ public interface Greetings extends Library {
      * Maven will run scripts/rust-compile.sh, which will compile the crate and
      * copy it into target/classes/&lt;platform-specific-name&gt;.
      */
-    Greetings INSTANCE = (Greetings) Native.loadLibrary(JNA_LIBRARY_NAME, Greetings.class);
+    Greetings INSTANCE = Native.loadLibrary(JNA_LIBRARY_NAME, Greetings.class);
 
     /**
      * Passing a parameter to a Rust function

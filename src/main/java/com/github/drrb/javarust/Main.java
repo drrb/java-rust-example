@@ -28,11 +28,7 @@ public class Main {
     
     public static void main(String[] args) {
         List<String> arguments = asList(args);
-        if (arguments.isEmpty()) {
-            name = "World";
-        } else {
-            name = arguments.get(0);
-        }
+        name = arguments.isEmpty() ? "World" : arguments.get(0);
         Greetings.INSTANCE.printGreeting(name);
     }
     
