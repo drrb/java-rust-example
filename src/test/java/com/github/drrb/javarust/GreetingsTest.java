@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static com.github.drrb.javarust.test.Matchers.is;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 
@@ -96,10 +97,9 @@ public class GreetingsTest {
             }
         });
 
-        List<String> greetingStrings = new LinkedList<>();
-        for (Greeting greeting : greetings) {
-            greetingStrings.add(greeting.getText());
-        }
+        List<String> greetingStrings = greetings.stream()
+                .map(Greeting::getText)
+                .collect(toList());
 
         assertThat(greetingStrings, contains("Hello!", "Hello again!"));
     }
@@ -107,10 +107,9 @@ public class GreetingsTest {
     @Test
     public void shouldGetAStructFromRustContainingAnArrayOfStructs() {
         try (GreetingSet result = library.renderGreetings()) {
-            List<String> greetings = new LinkedList<>();
-            for (Greeting greeting : result.getGreetings()) {
-                greetings.add(greeting.getText());
-            }
+            List<String> greetings = result.getGreetings().stream()
+                    .map(Greeting::getText)
+                    .collect(toList());
 
             assertThat(greetings, contains("Hello!", "Hello again!"));
         }

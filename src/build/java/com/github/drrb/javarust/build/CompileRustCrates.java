@@ -27,14 +27,17 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import static java.util.Arrays.asList;
+import java.util.Arrays;
+import static java.util.stream.Collectors.toList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 /**
- *
+ * Provides the functionality to compile Rust crates
+ * as a maven action.
  */
 public class CompileRustCrates {
 
@@ -45,9 +48,7 @@ public class CompileRustCrates {
         Paths.get("target", "rust-libs").toFile().mkdirs();
         if (changesDetected()) {
             System.out.println("Changes detected. Compiling all Rust crates!");
-            for (Path crate : crates()) {
-                compile(crate);
-            }
+            crates().forEach(CompileRustCrates::compile);
         } else {
             System.out.println("No changes detected. Not recompiling Rust crates.");
         }
@@ -107,13 +108,9 @@ public class CompileRustCrates {
     }
 
     private static List<Path> crates() throws IOException {
-        List<Path> crates = new LinkedList<>();
-        for (Path rustSource : rustSources()) {
-            if (isCrate(rustSource)) {
-                crates.add(rustSource);
-            }
-        }
-        return crates;
+        return rustSources().stream()
+                .filter(CompileRustCrates::isCrate)
+                .collect(toList());
     }
 
     private static List<Path> rustSources() throws IOException {
@@ -142,14 +139,13 @@ public class CompileRustCrates {
     }
 
     private static boolean inNetbeans() {
-        for (Map.Entry<String, String> envVars : System.getenv().entrySet()) {
-            String key = envVars.getKey();
-            String value = envVars.getValue();
-            if (key.matches("JAVA_MAIN_CLASS_\\d+") && value.equals("org.netbeans.Main")) {
-                return true;
-            }
-        }
-        return false;
+        return System.getenv().entrySet()
+                .stream()
+                .anyMatch(envVars -> {
+                    String key = envVars.getKey();
+                    String value = envVars.getValue();
+                    return key.matches("JAVA_MAIN_CLASS_\\d+") && value.equals("org.netbeans.Main");
+                });
     }
 
     private static boolean isRustSource(Path path, BasicFileAttributes attributes) {
@@ -174,14 +170,10 @@ public class CompileRustCrates {
     }
 
     private static Date newestChange(List<Path> paths) {
-        Date lastChange = EPOCH;
-        for (Path path : paths) {
-            Date change = mtime(path);
-            if (change.getTime() > lastChange.getTime()) {
-                lastChange = change;
-            }
-        }
-        return lastChange;
+        return paths.stream()
+                .map(CompileRustCrates::mtime)
+                .max(Comparator.comparingLong(Date::getTime))
+                .orElse(EPOCH);
     }
 
     @SuppressWarnings("CallToPrintStackTrace")
@@ -204,21 +196,13 @@ public class CompileRustCrates {
         WINDOWS("win") {
             @Override
             public String jnaArchString() {
-                if (currentIs64Bit()) {
-                    return "win32-x86-64";
-                } else {
-                    return "win32-x86";
-                }
+                return currentIs64Bit() ? "win32-x86-64" : "win32-x86";
             }
         },
         GNU_SLASH_LINUX("nux") {
             @Override
             public String jnaArchString() {
-                if (currentIs64Bit()) {
-                    return "linux-x86-64";
-                } else {
-                    return "linux-x86";
-                }
+                return currentIs64Bit() ? "linux-x86-64" : "linux-x86";
             }
         },
         UNKNOWN() {
@@ -229,28 +213,22 @@ public class CompileRustCrates {
         };
         private final String[] substrings;
 
-        private Os(String... substrings) {
+        Os(String... substrings) {
             this.substrings = substrings;
         }
 
         public abstract String jnaArchString();
 
         public static Os getCurrent() {
-            for (Os os : values()) {
-                if (os.isCurrent()) {
-                    return os;
-                }
-            }
-            return UNKNOWN;
+            return Arrays.stream(values())
+                    .filter(Os::isCurrent)
+                    .findFirst()
+                    .orElse(UNKNOWN);
         }
 
         public boolean isCurrent() {
-            for (String substring : substrings) {
-                if (currentOsString().contains(substring)) {
-                    return true;
-                }
-            }
-            return false;
+            return Arrays.stream(substrings)
+                    .anyMatch(substring -> currentOsString().contains(substring));
         }
 
         private static boolean currentIs64Bit() {
@@ -265,17 +243,17 @@ public class CompileRustCrates {
     private static abstract class FileFinder implements FileVisitor<Path> {
         private final List<Path> found = new LinkedList<>();
 
-        public List<Path> getFound() {
+        List<Path> getFound() {
             return found;
         }
 
         @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
             return FileVisitResult.CONTINUE;
         }
 
         @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             if (accept(file, attrs)) {
                 found.add(file);
             }
@@ -283,12 +261,12 @@ public class CompileRustCrates {
         }
 
         @Override
-        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+        public FileVisitResult visitFileFailed(Path file, IOException exc) {
             return FileVisitResult.CONTINUE;
         }
 
         @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
             return FileVisitResult.CONTINUE;
         }
 
