@@ -5,6 +5,7 @@ env:
   - RUST_CHANNEL=stable
   - RUST_CHANNEL=nightly
 matrix:
+  fast_finish: true
     allow_failures:
       - env: RUST_CHANNEL=nightly
 before_install:
@@ -16,3 +17,7 @@ install:
   - rustup toolchain install ${RUST_CHANNEL}
   - rustup override set ${RUST_CHANNEL}
   - rustc --version
+
+cache:
+  directories:
+  - $HOME/.m2
