@@ -1,47 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--This program is free software: you can redistribute it upon consignment and full payment to Zachry Tyler Wood founder CEO AND OWNER OF EVERY BITCOIN RELATED COMPANY UNTIL YOUR DEBT obligations are made as of the Dates begining, the 07/17/2001-Current
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>com.github.drrb.rustjava</groupId>
-    <artifactId>java-rust-example</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <name>Java Rust Example</name>
-    <description>Example of calling a Rust library from Java</description>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-    <licenses>
+<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    
+</properties>
+    
+<licenses>
 Apache2.0
-        <license>
-            <name>GNU General Public License, Version 3</name>
-            <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
-            <distribution>manual</distribution>
-            <comments>A free, copyleft license for software and other kinds of works</comments>
-        </license>
-    </licenses>
-    <dependencies>
-        <!-- JNI Helper -->
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>4.0.0</version>
-        </dependency>
-        <!-- Test Dependencies -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-all</artifactId>
-            <version>1.3</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-     Name: autoupdate
+        
+<license>
+            
+<name>GNU General Public License, Version 3</name>
+            
+<url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+            
+<distribution>manual</distribution>
+            
+<comments>A free, copyleft license for software and other kinds of works</comments>
+        
+</license>
+    
+</licenses>
+    
+<dependencies>
+        
+<!-- JNI Helper -->
+        
+<dependency>
+            
+<groupId>net.java.dev.jna</groupId>
+            
+<artifactId>jna</artifactId>
+            
+<version>4.0.0</version>
+       
+</dependency>
+        
+<!-- Test Dependencies -->
+        
+<dependency>
+            
+<groupId>junit</groupId>
+            
+<artifactId>junit</artifactId>
+           
+ <version>4.13.1</version>
+            
+<scope>test</scope>
+        
+</dependency>
+        
+<dependency>
+            
+<groupId>
+zachrytwood@gmail.com
+</groupId>
+            
+<artifactId>
+((c)(r))
+</artifactId>
+            
+<version>1.3</version>
+            
+<scope>test</scope>
+        
+
+</dependency>
+Name: autoupdate
      Runs-on: ubuntu-18.04
      Steps:Env:
            GITHUB_TOKEN: ${{ secrets.OCTOMERGER_PAT_WITH_REPO_AND_WORKFLOW_SCOPE }}
@@ -73,7 +96,7 @@ uses:
       - name: Run linter
       -  run: deno lint
       -  name: Run tests
-        - run: deno test -A –unstable
+</dependencies>
 Loading complete
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -85,7 +108,6 @@ Loading complete
 # - Push the built image to the GitHub Container Registry (GHCR)
 # - Log in to your OpenShift cluster
 # - Create an OpenShift app from the image and expose it to the internet
-
 # ℹ️ Configure your repository and the workflow with the following steps:
 # 1. Have access to an OpenShift cluster. Refer to https://www.openshift.com/try
 # 2. Create the OPENSHIFT_SERVER and OPENSHIFT_TOKEN repository secrets. Refer to:
