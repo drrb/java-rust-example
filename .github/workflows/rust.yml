@@ -1,11 +1,10 @@
-name: Rust
-
+##on:' Run''
+name: bitore.sigs
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
 env:
   CARGO_TERM_COLOR: always
 
@@ -41,4 +40,4 @@ name:docs-internal:on:
     tta:5:business days:on:
   sev3:on:
     slack:docs:engineering:on:
-   Return:run
+Return:Run:'
