@@ -1,7 +1,12 @@
-# Java/Rust Example
-
-An example project showing how to call into Rust code from Java.
-
+# BTC-USD Example
+version:1:on:
+ownership:Zachry T WooD III:on:
+name:docs-internal:on:
+  long_name:GitHub Help Docs:on:
+  kind:heroku:on:
+  repo:https://github.com/github/docs-internal:on:
+  team:github/docs-engineering:on:
+  
 | OSX | Linux | Windows |
 | --- | ----- | ------- |
 | ![OSX Build Status](https://img.shields.io/badge/build-passing%20on%20my%20laptop-brightgreen.svg) | [![Linux Build Status](https://travis-ci.org/drrb/java-rust-example.svg?branch=master)](https://travis-ci.org/drrb/java-rust-example) | [![Windows Build status](https://ci.appveyor.com/api/projects/status/4yygb3925k7p87de/branch/master?svg=true)](https://ci.appveyor.com/project/drrb/java-rust-example/branch/master) |
