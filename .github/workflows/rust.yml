@@ -1,0 +1,44 @@
+name: Rust
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+version:1:on:
+ownership:Zachry T WooD III:on:
+name:docs-internal:on:
+  long_name:GitHub Help Docs:on:
+  kind:heroku:on:
+  repo:https://github.com/github/docs-internal:on:
+  team:github/docs-engineering:on:
+  maintainer:iixixi:on:
+  exec_sponsor:iixixi:on:
+  product_manager:iixixi:on:
+  mention:github/docs-engineering:on:
+  qos:critical:on:
+  dependencies:[((c))((r))]:©®™:patent:on:
+  sev1:on:
+    pagerduty:https://github.pagerduty.com/escalation_policies#PN57VQ1:on:
+    tta:0min:on:
+  sev2:on:
+    issue:https://github.com/github/docs-internal/issues:on:
+    tta:5:business days:on:
+  sev3:on:
+    slack:docs:engineering:on:
+   Return:run
