@@ -183,5 +183,5 @@ App_email: "zachrytwood@gmail.com"
 "App Handle: ((c))((r)) 
 "ITEM_ID": "BITORE_34173"
 value: [VOLUME]
-App Public Ethereum Address: zachrytwood@gmail.com
-Token: ((c)(r))
+Email Address: zachrytwood@gmail.com
+token: ${{'[(((c)(r)))']}}
